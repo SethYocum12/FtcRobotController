@@ -14,15 +14,15 @@ public class tank_motors {
     private double tprRightWheel;
 
     public void init(HardwareMap hwMap){
-        //Init for left side and setting motor RunMode
+        //Init for left side
         left_wheel = hwMap.get(DcMotorEx.class,"left_wheel");
-        left_wheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        left_wheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Using power for troubleshooting
         tprLeftWheel = left_wheel.getMotorType().getTicksPerRev();
 
-        //Init for right side and setting motor RunMode
+        //Init for right side
         right_wheel = hwMap.get(DcMotorEx.class,"right_wheel");
-        right_wheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         right_wheel.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_wheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Using power for troubleshooting
         tprRightWheel = right_wheel.getMotorType().getTicksPerRev();
 
         //Init intake motor
@@ -30,24 +30,20 @@ public class tank_motors {
         intake_wheels.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
-
-    public void setLeftWheelSpeed(double speed){
-        //takes in rotation per minute
-        left_wheel.setVelocity(speed * tprLeftWheel);
-
+    public void setLeftWheelSpeed(double power){
+        left_wheel.setPower(power); 
     }
-    public void setRightWheelSpeed(double speed){
-        //takes in rotation per minute
-        right_wheel.setVelocity(speed * tprRightWheel);
 
+    public void setRightWheelSpeed(double power){
+        right_wheel.setPower(power);
     }
 
     public double getLeftWheelRevs(){
-        return left_wheel.getCurrentPosition() / tprLeftWheel; // normalizing ticks to rev.
+        return left_wheel.getCurrentPosition() / tprLeftWheel;
     }
 
     public double getRightWheelRevs(){
-        return right_wheel.getCurrentPosition() / tprRightWheel; // normalizing ticks to rev.
+        return right_wheel.getCurrentPosition() / tprRightWheel;
     }
 
     public void intake(boolean on_off, double intake_speed){
@@ -56,10 +52,9 @@ public class tank_motors {
         } else {
             intake_wheels.setPower(0);
         }
-
     }
+    
     public double getIntakeMotorSpeed(){
         return intake_wheels.getPower();
     }
 }
-
