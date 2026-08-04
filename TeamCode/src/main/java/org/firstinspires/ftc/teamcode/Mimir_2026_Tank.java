@@ -11,14 +11,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.mechanisms.IMU_setup;
+import org.firstinspires.ftc.teamcode.mechanisms.tank_limelight;
 import org.firstinspires.ftc.teamcode.mechanisms.tank_motors;
 import org.firstinspires.ftc.teamcode.mechanisms.tank_servos;
 
 @TeleOp
 public class Mimir_2026_Tank extends OpMode {
-    IMU_setup bench = new IMU_setup();
+    IMU_setup the_imu = new IMU_setup();
     tank_motors motors = new tank_motors();
     tank_servos servos = new tank_servos();
+
+    tank_limelight the_limelight = new tank_limelight();
 
 
     //motors
@@ -28,8 +31,7 @@ public class Mimir_2026_Tank extends OpMode {
 
     // limelight/april tag stuff
     private Limelight3A limelight;
-    private IMU imu;
-    private double distance;
+    double distance;
     boolean intake_toggle = false;
     boolean last_intake_button = false;
 
@@ -42,15 +44,14 @@ public class Mimir_2026_Tank extends OpMode {
 
     @Override
     public void init(){
-        motors.init(hardwareMap);
+        motors.init(hardwareMap); // initialization motors
         servos.init(hardwareMap); // Added missing initialization
-        bench.init(hardwareMap); // initialization of IMU
+        the_imu.init(hardwareMap); // initialization of IMU
+        the_limelight.init(hardwareMap); //initialization of limelight
+
+
         limelight = hardwareMap.get(Limelight3A.class,"limelight");// finding april tag hw map
         limelight.pipelineSwitch(8);// finding pipeline
-        imu = hardwareMap.get(IMU.class, "imu");// imu init for april tags
-        RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD);// more setting up imu
-        imu.initialize(new IMU.Parameters(revHubOrientationOnRobot));
 
     }
 
@@ -63,14 +64,14 @@ public class Mimir_2026_Tank extends OpMode {
 
     @Override
     public void loop() {
-        YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();// orentation for imu
+        YawPitchRollAngles orientation = the_imu.imu_orientation();// orentation for imu
         limelight.updateRobotOrientation(orientation.getYaw());// updating limelight
         LLResult llResult = limelight.getLatestResult();// pulls data from limelight
-        if (llResult != null && llResult.isValid()) {
-            distance = getDistanceFromTag((llResult.getTa()));
+        if (llResult != null && llResult.isValid()) { // if the result is a thing and is valid do:
+            distance = getDistanceFromTag((llResult.getTa())); //gets the distances from the tag
             telemetry.addData("distance", distance);
             // Check for the specific AprilTag ID. fidual is fancy word for april tag
-            if (!llResult.getFiducialResults().isEmpty()) {
+            if (!llResult.getFiducialResults().isEmpty()) { //if the tag is not empty, return tag ID
                 telemetry.addData("Tag ID", llResult.getFiducialResults().get(0).getFiducialId());
             }
 
@@ -106,7 +107,7 @@ public class Mimir_2026_Tank extends OpMode {
         telemetry.addData("Left Wheel Revs", motors.getLeftWheelRevs());
         telemetry.addData("Right Wheel Revs", motors.getRightWheelRevs());
         telemetry.addData("Intake On?", intake_button);
-        telemetry.addData("Heading", bench.getHeading(AngleUnit.DEGREES));
+        telemetry.addData("Heading", the_imu.getHeading(AngleUnit.DEGREES));
         telemetry.update();
     }
 

@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class IMU_setup {
 
@@ -22,8 +23,12 @@ public class IMU_setup {
         imu.initialize(new IMU.Parameters(RevOrientation));
     }
 
-public double getHeading(AngleUnit degrees){
-        return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-}
+    public double getHeading(AngleUnit degrees){
+            return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+    }
+
+    public YawPitchRollAngles imu_orientation() {
+            return imu.getRobotYawPitchRollAngles();
+    }
 
 }
