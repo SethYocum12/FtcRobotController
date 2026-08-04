@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.limelightvision.LLFieldMap;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -21,6 +20,7 @@ public class Mimir_2026_Tank extends OpMode {
     tank_motors motors = new tank_motors();
     tank_servos servos = new tank_servos();
 
+
     //motors
     double left_wheel_button;
     double right_wheel_button;
@@ -29,11 +29,16 @@ public class Mimir_2026_Tank extends OpMode {
     // limelight/april tag stuff
     private Limelight3A limelight;
     private IMU imu;
+    private double distance;
+    boolean intake_toggle = false;
+    boolean last_intake_button = false;
 
     //power
     double drivePowerMultiplier = 0.8; // 80% max speed (setPower range is 0 to 1)
     double intakeMotorSpeed = -1;
     double intakeServoSpeed = 1;
+
+
 
     @Override
     public void init(){
@@ -62,11 +67,24 @@ public class Mimir_2026_Tank extends OpMode {
         limelight.updateRobotOrientation(orientation.getYaw());// updating limelight
         LLResult llResult = limelight.getLatestResult();// pulls data from limelight
         if (llResult != null && llResult.isValid()) {
-            Pose3D botPose = llResult.getBotpose_MT2();
-            telemetry.addData("Target x", llResult.getTx());
-            telemetry.addData("Target y", llResult.getTy());
-            telemetry.addData("Target a", llResult.getTa());
+            distance = getDistanceFromTag((llResult.getTa()));
+            telemetry.addData("distance", distance);
+            // Check for the specific AprilTag ID. fidual is fancy word for april tag
+            if (!llResult.getFiducialResults().isEmpty()) {
+                telemetry.addData("Tag ID", llResult.getFiducialResults().get(0).getFiducialId());
+            }
+
+            telemetry.addData("Target x", llResult.getTx()); 
+            telemetry.addData("Target y", llResult.getTy()); 
+            telemetry.addData("Target Area", llResult.getTa());
+        } else {
+            telemetry.addData("Limelight", "No AprilTag Detected");
         }
+
+        if (intake_button && last_intake_button != intake_button){
+            intake_toggle = !intake_toggle;
+        }
+        last_intake_button = intake_button;
 
 
 
@@ -78,8 +96,7 @@ public class Mimir_2026_Tank extends OpMode {
         // Drive Logic
         motors.setLeftWheelSpeed(left_wheel_button * drivePowerMultiplier);
         motors.setRightWheelSpeed(right_wheel_button * drivePowerMultiplier);
-        
-        motors.intake(intake_button, intakeMotorSpeed);
+        motors.intake(intake_toggle, intakeMotorSpeed);
         servos.servos_move(intake_button, intakeServoSpeed);
 
         telemetry.addData("Left Stick Y", left_wheel_button);
@@ -91,6 +108,13 @@ public class Mimir_2026_Tank extends OpMode {
         telemetry.addData("Intake On?", intake_button);
         telemetry.addData("Heading", bench.getHeading(AngleUnit.DEGREES));
         telemetry.update();
+    }
+
+    public double getDistanceFromTag(double ta) {
+        // Area decreases with the square of distance, so we use sqrt(ta) to linearize it.
+        // Final calibration: (49.5 actual / 50.0 reported) * 180.4 = 178.6
+        double scale = 178.6;
+        return (scale / Math.sqrt(ta));
     }
 }
 
