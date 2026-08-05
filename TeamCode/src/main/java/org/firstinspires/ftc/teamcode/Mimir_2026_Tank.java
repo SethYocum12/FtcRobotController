@@ -58,7 +58,7 @@ public class Mimir_2026_Tank extends OpMode {
     @Override
     public void start() {
         // this public void is used for apriltag
-        limelight.start();
+        the_limelight.limelight_start();
 
     }
 
@@ -98,7 +98,7 @@ public class Mimir_2026_Tank extends OpMode {
         motors.setLeftWheelSpeed(left_wheel_button * drivePowerMultiplier);
         motors.setRightWheelSpeed(right_wheel_button * drivePowerMultiplier);
         motors.intake(intake_toggle, intakeMotorSpeed);
-        servos.servos_move(intake_button, intakeServoSpeed);
+        servos.servos_move(intake_toggle, intakeServoSpeed);
 
         telemetry.addData("Left Stick Y", left_wheel_button);
         telemetry.addData("Right Stick Y", right_wheel_button);
@@ -108,14 +108,12 @@ public class Mimir_2026_Tank extends OpMode {
         telemetry.addData("Right Wheel Revs", motors.getRightWheelRevs());
         telemetry.addData("Intake On?", intake_button);
         telemetry.addData("Heading", the_imu.getHeading(AngleUnit.DEGREES));
+        if the_limelight.distanceTele(){
+            telemetry.addData("Distance", the_limelight.returnDistance())
+        }
         telemetry.update();
     }
 
-    public double getDistanceFromTag(double ta) {
-        // Area decreases with the square of distance, so we use sqrt(ta) to linearize it.
-        // Final calibration: (49.5 actual / 50.0 reported) * 180.4 = 178.6
-        double scale = 178.6;
-        return (scale / Math.sqrt(ta));
-    }
+
 }
 
