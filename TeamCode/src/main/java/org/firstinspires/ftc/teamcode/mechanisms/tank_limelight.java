@@ -93,15 +93,15 @@ public class tank_limelight {
         return tagIdTele;
     }
 
-    public boolean TxTele(){
+    public boolean txTele(){
         return txTele;
     }
 
-    public boolean TyTele(){
+    public boolean tyTele(){
         return tyTele;
     }
 
-    public boolean TaTele(){
+    public boolean taTele(){
         return taTele;
     }
 
