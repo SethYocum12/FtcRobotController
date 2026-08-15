@@ -17,11 +17,19 @@ import org.firstinspires.ftc.teamcode.mechanisms.tank_servos;
 
 @TeleOp
 public class Mimir_2026_Tank extends OpMode {
-    IMU_setup the_imu = new IMU_setup();
-    tank_motors motors = new tank_motors();
-    tank_servos servos = new tank_servos();
+    IMU_setup the_imu = new IMU_setup(); //creates a new imu class
+    tank_motors motors = new tank_motors(); //creates a new motor class
+    tank_servos servos = new tank_servos(); //creates a new servo class
 
-    tank_limelight the_limelight = new tank_limelight();
+    tank_limelight the_limelight = new tank_limelight(); // creates a new limelight class
+
+    //A function used for telemtry that when a varible is  true, the telemetry is shown. But when it's false nothing happens.
+    //Mainly used for external scripts
+    public void externalTelemetry(String name, double data, boolean telemetryTrigger){
+        if (telemetryTrigger){
+            telemetry.addData(name, data);
+        }
+    }
 
 
     //motors
@@ -30,17 +38,14 @@ public class Mimir_2026_Tank extends OpMode {
     boolean intake_button;
 
     // limelight/april tag stuff
-    private Limelight3A limelight;
     double distance;
     boolean intake_toggle = false;
     boolean last_intake_button = false;
 
     //power
     double drivePowerMultiplier = 0.8; // 80% max speed (setPower range is 0 to 1)
-    double intakeMotorSpeed = -1;
-    double intakeServoSpeed = 1;
-
-
+    double intakeMotorSpeed = 1; //sets the intake motor speed power
+    double intakeServoSpeed = 1; //sets the intake servo speed power
 
     @Override
     public void init(){
@@ -48,11 +53,6 @@ public class Mimir_2026_Tank extends OpMode {
         servos.init(hardwareMap); // Added missing initialization
         the_imu.init(hardwareMap); // initialization of IMU
         the_limelight.init(hardwareMap); //initialization of limelight
-
-
-        limelight = hardwareMap.get(Limelight3A.class,"limelight");// finding april tag hw map
-        limelight.pipelineSwitch(8);// finding pipeline
-
     }
 
     @Override
@@ -64,53 +64,42 @@ public class Mimir_2026_Tank extends OpMode {
 
     @Override
     public void loop() {
-        YawPitchRollAngles orientation = the_imu.imu_orientation();// orentation for imu
-        limelight.updateRobotOrientation(orientation.getYaw());// updating limelight
-        LLResult llResult = limelight.getLatestResult();// pulls data from limelight
-        if (llResult != null && llResult.isValid()) { // if the result is a thing and is valid do:
-            distance = getDistanceFromTag((llResult.getTa())); //gets the distances from the tag
-            telemetry.addData("distance", distance);
-            // Check for the specific AprilTag ID. fidual is fancy word for april tag
-            if (!llResult.getFiducialResults().isEmpty()) { //if the tag is not empty, return tag ID
-                telemetry.addData("Tag ID", llResult.getFiducialResults().get(0).getFiducialId());
-            }
-
-            telemetry.addData("Target x", llResult.getTx()); 
-            telemetry.addData("Target y", llResult.getTy()); 
-            telemetry.addData("Target Area", llResult.getTa());
-        } else {
-            telemetry.addData("Limelight", "No AprilTag Detected");
-        }
-
-        if (intake_button && last_intake_button != intake_button){
-            intake_toggle = !intake_toggle;
-        }
-        last_intake_button = intake_button;
-
-
-
         // Update gamepad inputs every loop
         left_wheel_button = -gamepad1.left_stick_y; 
         right_wheel_button = -gamepad1.right_stick_y;
         intake_button = gamepad1.a;
 
-        // Drive Logic
+        //button delay for intake toggle button
+        if (intake_button && last_intake_button != intake_button){
+            intake_toggle = !intake_toggle;
+        }
+        last_intake_button = intake_button;
+
+        //The main part of every device
         motors.setLeftWheelSpeed(left_wheel_button * drivePowerMultiplier);
         motors.setRightWheelSpeed(right_wheel_button * drivePowerMultiplier);
         motors.intake(intake_toggle, intakeMotorSpeed);
         servos.servos_move(intake_toggle, intakeServoSpeed);
+        the_limelight.main();
 
         telemetry.addData("Left Stick Y", left_wheel_button);
         telemetry.addData("Right Stick Y", right_wheel_button);
-        telemetry.addData("Left Power Sent", left_wheel_button * drivePowerMultiplier);
-        telemetry.addData("Right Power Sent", right_wheel_button * drivePowerMultiplier);
-        telemetry.addData("Left Wheel Revs", motors.getLeftWheelRevs());
-        telemetry.addData("Right Wheel Revs", motors.getRightWheelRevs());
-        telemetry.addData("Intake On?", intake_button);
-        telemetry.addData("Heading", the_imu.getHeading(AngleUnit.DEGREES));
-        if the_limelight.distanceTele(){
-            telemetry.addData("Distance", the_limelight.returnDistance())
+        telemetry.addData("Left Power Sent", (left_wheel_button * drivePowerMultiplier)); //shows how much power it's trying to do
+        telemetry.addData("Right Power Sent", (right_wheel_button * drivePowerMultiplier)); //shows how much power it's trying to do
+        telemetry.addData("Left Wheel Revs", motors.getLeftWheelRevs()); //shows the speed of the left side
+        telemetry.addData("Right Wheel Revs", motors.getRightWheelRevs()); //shows the speed of the right side
+        telemetry.addData("Intake On?", intake_toggle); //shows if the toggable intake is on
+        telemetry.addData("Heading", the_imu.getHeading(AngleUnit.DEGREES)); //shows the heading of the robot
+        externalTelemetry("Distance", the_limelight.returnDistance(), the_limelight.distanceTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
+        externalTelemetry("Target X", the_limelight.returnLLResultTx(), the_limelight.txTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
+        externalTelemetry("Target Y", the_limelight.returnLLResultTy(), the_limelight.tyTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
+        externalTelemetry("Target Area", the_limelight.returnLLResultTa(), the_limelight.taTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
+        externalTelemetry("Tag ID", the_limelight.returnTagId(), the_limelight.tagIdTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
+
+        if (the_limelight.noLimeTele()){ //same thing as the ones above but we can't use the function because the function only displays doubles as data. 
+            telemetry.addData("April Tag?", "No Tag Detected");
         }
+
         telemetry.update();
     }
 
