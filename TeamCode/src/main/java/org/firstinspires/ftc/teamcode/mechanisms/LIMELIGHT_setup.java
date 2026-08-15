@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
-public class tank_limelight {
+public class LIMELIGHT_setup {
     IMU_setup the_imu = new IMU_setup();
     private Limelight3A limelight;
 

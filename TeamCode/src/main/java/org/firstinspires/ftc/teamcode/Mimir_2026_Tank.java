@@ -1,27 +1,21 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.mechanisms.IMU_setup;
-import org.firstinspires.ftc.teamcode.mechanisms.tank_limelight;
+import org.firstinspires.ftc.teamcode.mechanisms.LIMELIGHT_setup;
 import org.firstinspires.ftc.teamcode.mechanisms.tank_motors;
-import org.firstinspires.ftc.teamcode.mechanisms.tank_servos;
+import org.firstinspires.ftc.teamcode.mechanisms.servos;
 
 @TeleOp
 public class Mimir_2026_Tank extends OpMode {
     IMU_setup the_imu = new IMU_setup(); //creates a new imu class
     tank_motors motors = new tank_motors(); //creates a new motor class
-    tank_servos servos = new tank_servos(); //creates a new servo class
+    servos servos = new servos(); //creates a new servo class
 
-    tank_limelight the_limelight = new tank_limelight(); // creates a new limelight class
+    LIMELIGHT_setup the_limelight = new LIMELIGHT_setup(); // creates a new limelight class
 
     //A function used for telemtry that when a varible is  true, the telemetry is shown. But when it's false nothing happens.
     //Mainly used for external scripts
