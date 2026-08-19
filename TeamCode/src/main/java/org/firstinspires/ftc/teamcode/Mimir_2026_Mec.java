@@ -21,15 +21,17 @@ public class Mimir_2026_Mec extends OpMode {
     LIMELIGHT_setup the_limelight = new LIMELIGHT_setup(); // creates a new limelight class
     private ElapsedTime runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
-    public double divide (double input, double divider){
-        return input / divider;
-    }
-
     public void toggleButton(boolean buttonTrigger, boolean lastButtonTrigger, boolean buttonToggle){
         if (buttonTrigger && lastButtonTrigger != buttonTrigger){
             buttonToggle = !buttonToggle;
         }
         lastButtonTrigger = buttonTrigger;
+    }
+
+    public void externalTelemetry(String name, double data, boolean telemetryTrigger){
+        if (telemetryTrigger){
+            telemetry.addData(name, data);
+        }
     }
 
     //movement variables
@@ -54,15 +56,18 @@ public class Mimir_2026_Mec extends OpMode {
     //timers
     double buttonDelay = 300;
 
-    double last_turbo = -buttonDelay;
-
     //other
-    double EqualizationPower;
+
+    //intake
+    boolean intakeButton = gamepad1.a;
+    boolean intakeToggle = false;
+    boolean intakeTrigger = false;
+    boolean lastIntakeTrigger;
 
     //turbo
+    boolean turboButton = gamepad1.right_bumper;
     boolean turboToggle = false;
-    double turboPower = 1.0;
-    boolean turboTrigger = gamepad1.dpad_up;
+    boolean turboTrigger = false;
     boolean lastTurboTrigger;
 
     @Override
@@ -81,8 +86,11 @@ public class Mimir_2026_Mec extends OpMode {
         x_axis = gamepad1.right_stick_x;
         y_axis = -gamepad1.right_stick_y;
         rotation = gamepad1.left_stick_x;
+        turboTrigger = turboButton;
+        intakeTrigger = intakeButton;
         //calculating Mecanum power
         drive.main(x_axis, y_axis, rotation, maxPower, frontLPower, frontRPower, backLPower, backRPower);
+        the_limelight.main();
         // finding amount of power to display on driver hub
         telemetry.addData("Front L power", drive.returnFrontLeftPower());
         telemetry.addData("Front R power", drive.returnFrontRightPower());
@@ -90,9 +98,18 @@ public class Mimir_2026_Mec extends OpMode {
         telemetry.addData("Back R power", drive.returnBackRightPower());
         telemetry.addData("Turbo Mode?" , turboToggle);
         telemetry.addData("Power" , maxPower);
+        externalTelemetry("Target X", the_limelight.returnLLResultTx(), the_limelight.txTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
+        externalTelemetry("Target Y", the_limelight.returnLLResultTy(), the_limelight.tyTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
+        externalTelemetry("Target Area", the_limelight.returnLLResultTa(), the_limelight.taTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
+        externalTelemetry("Tag ID", the_limelight.returnTagId(), the_limelight.tagIdTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
+
+        if (the_limelight.noLimeTele()){ //same thing as the ones above but we can't use the function because the function only displays doubles as data.
+            telemetry.addData("April Tag?", "No Tag Detected");
+        }
 
         telemetry.update();
 
         toggleButton(turboTrigger, lastTurboTrigger, turboToggle);
+        toggleButton(intakeTrigger, lastIntakeTrigger, intakeToggle);
     }
 }

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.mechanisms;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
@@ -18,13 +19,17 @@ public class mec_wheels_mechanisms {
     public void init(HardwareMap hwMap){
 
         //DcMotor Init
-        front_left = hwMap.get(DcMotor.class, "front_left");
-        front_right = hwMap.get(DcMotor.class, "front_right");
-        back_left = hwMap.get(DcMotor.class, "back_left");
-        back_right = hwMap.get(DcMotor.class, "back_right");
+        front_left = hwMap.get(DcMotorEx.class, "front_left");
+        front_left.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        front_right.setDirection(DcMotor.Direction.REVERSE);
-        back_right.setDirection(DcMotor.Direction.REVERSE);
+        front_right = hwMap.get(DcMotorEx.class, "front_right");
+        front_right.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        back_left = hwMap.get(DcMotorEx.class, "back_left");
+        back_right = hwMap.get(DcMotorEx.class, "back_right");
+
+        front_right.setDirection(DcMotorEx.Direction.REVERSE);
+        back_right.setDirection(DcMotorEx.Direction.REVERSE);
     }
 
     public void setFrontLeft(double power){
