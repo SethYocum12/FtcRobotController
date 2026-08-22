@@ -23,7 +23,7 @@ public class IMU_setup {
         imu.initialize(new IMU.Parameters(RevOrientation));
     }
 
-    public double getHeading(AngleUnit degrees){
+    public double getHeading(){
             return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
     }
 
