@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.JavaUtil;
+
 public class mec_wheels {
 
     //Motors
@@ -25,8 +27,9 @@ public class mec_wheels {
     double backRPower;
 
     private DcMotor intake_wheels;
+    double EqualizationPower;
 
-    double driveSpeed = 0.6;
+    double driveSpeed;
 
     //init for everything
     public void init(HardwareMap hwMap){
@@ -34,11 +37,11 @@ public class mec_wheels {
         //DcMotor Init
         front_left = hwMap.get(DcMotorEx.class, "front_left");
         front_left.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        front_left.setDirection(DcMotorEx.Direction.REVERSE);
         tprFrontLeft = front_left.getMotorType().getTicksPerRev();
 
         front_right = hwMap.get(DcMotorEx.class, "front_right");
         front_right.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        front_right.setDirection(DcMotorEx.Direction.REVERSE);
         tprFrontRight = front_right.getMotorType().getTicksPerRev();
 
         back_left = hwMap.get(DcMotorEx.class, "back_left");
@@ -48,7 +51,7 @@ public class mec_wheels {
         back_right = hwMap.get(DcMotorEx.class, "back_right");
         back_right.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         back_right.setDirection(DcMotorEx.Direction.REVERSE);
-        tprBackRight = back_right.getMotorType().getTicksPerRev();
+        tprBackRight = front_left.getMotorType().getTicksPerRev();
 
         intake_wheels = hwMap.get(DcMotor.class,"intake_wheels");
         intake_wheels.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -60,7 +63,7 @@ public class mec_wheels {
 
     }
 
-        public void setFrontRight(double rps){
+    public void setFrontRight(double rps){
         // -1 to 1
         front_right.setVelocity(rps * tprFrontRight);
 
@@ -115,19 +118,19 @@ public class mec_wheels {
         frontRPower = (y_axis - x_axis) - rotation;
         backLPower = (y_axis - x_axis) + rotation;
         backRPower = (y_axis + x_axis) - rotation;
-
-        // Normalize the values so none exceed +/- 1.0
-        double max = Math.max(Math.abs(frontLPower), Math.abs(frontRPower));
-        max = Math.max(max, Math.abs(backLPower));
-        max = Math.max(max, Math.abs(backRPower));
-
-        if (max > 1.0) {
-            frontLPower /= max;
-            frontRPower /= max;
-            backLPower /= max;
-            backRPower /= max;
+        //Finds the equalization power by finding the max of all the powers.
+        this.EqualizationPower = JavaUtil.maxOfList(JavaUtil.createListWith(
+                Math.abs(frontLPower),
+                Math.abs(frontRPower),
+                Math.abs(backLPower),
+                Math.abs(backRPower)));
+        // Does equalization to make code not go over 1 and keep movement speed ratio between different motors & wheels.
+        if (this.EqualizationPower > 1) {
+            frontLPower = (frontLPower / this.EqualizationPower);
+            frontRPower = (frontRPower / this.EqualizationPower);
+            backLPower = (backLPower / this.EqualizationPower);
+            backRPower = (backRPower / this.EqualizationPower);
         }
-
         // Set Final Power
         this.setFrontLeft(frontLPower * powerMulti * driveSpeed);
         this.setFrontRight(frontRPower * powerMulti * driveSpeed);
