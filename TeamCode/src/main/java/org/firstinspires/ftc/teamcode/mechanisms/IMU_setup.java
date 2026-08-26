@@ -12,23 +12,29 @@ public class IMU_setup {
     private IMU imu;
 
     public void init (HardwareMap hwMap) {
-        //initlizing imu
-        imu = hwMap.get(IMU.class, "imu");
+        try {
+            //initlizing imu
+            imu = hwMap.get(IMU.class, "imu");
 
-        RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD
-        );
+            RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(
+                    RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                    RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+            );
 
-        imu.initialize(new IMU.Parameters(RevOrientation));
+            imu.initialize(new IMU.Parameters(RevOrientation));
+        } catch (Exception e) {
+            imu = null;
+        }
     }
 
     public double getHeading(){
-            return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        if (imu == null) return 0.0;
+        return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
     }
 
     public YawPitchRollAngles imu_orientation() {
-            return imu.getRobotYawPitchRollAngles();
+        if (imu == null) return new YawPitchRollAngles(AngleUnit.DEGREES, 0, 0, 0, 0);
+        return imu.getRobotYawPitchRollAngles();
     }
 
 }

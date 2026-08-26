@@ -20,12 +20,7 @@ public class Mimir_2026_Mec extends OpMode {
     LIMELIGHT_setup the_limelight = new LIMELIGHT_setup(); // creates a new limelight class
     private final ElapsedTime runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS); //init for the main timer
 
-    public void toggleButton(boolean buttonTrigger, boolean lastButtonTrigger, boolean buttonToggle){ //makes certain button togglable
-        if (buttonTrigger && lastButtonTrigger != buttonTrigger){
-            buttonToggle = !buttonToggle;
-        }
-        lastButtonTrigger = buttonTrigger;
-    }
+
 
     public void externalTelemetry(String name, double data, boolean telemetryTrigger){
         if (telemetryTrigger){
@@ -40,7 +35,7 @@ public class Mimir_2026_Mec extends OpMode {
     double rotation;
 
     //powers
-    double intakeSpeed = 1;
+    double intakeSpeed = -1;
 
     double rotationMultiplier = 10;
 
@@ -105,7 +100,14 @@ public class Mimir_2026_Mec extends OpMode {
 
         telemetry.update();
 
-        toggleButton(turboTrigger, lastTurboTrigger, turboToggle);
-        toggleButton(intakeTrigger, lastIntakeTrigger, intakeToggle);
+        if (turboTrigger && !lastTurboTrigger) {
+            turboToggle = !turboToggle;
+        }
+        lastTurboTrigger = turboTrigger;
+
+        if (intakeTrigger && !lastIntakeTrigger) {
+            intakeToggle = !intakeToggle;
+        }
+        lastIntakeTrigger = intakeTrigger;
     }
 }

@@ -4,10 +4,7 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-
 public class LIMELIGHT_setup {
-    IMU_setup the_imu = new IMU_setup();
     private Limelight3A limelight;
 
     double distance;
@@ -22,8 +19,12 @@ public class LIMELIGHT_setup {
 
 
     public void init(HardwareMap hwmap){
-        limelight = hwmap.get(Limelight3A.class,"limelight");// finding april tag hw map
-        limelight.pipelineSwitch(8);// finding pipeline
+        try {
+            limelight = hwmap.get(Limelight3A.class, "limelight");// finding april tag hw map
+            limelight.pipelineSwitch(8);// finding pipeline
+        } catch (Exception e) {
+            limelight = null;
+        }
     }
 
     public double getDistanceFromTag(double ta) {
@@ -34,8 +35,10 @@ public class LIMELIGHT_setup {
     }
 
     public void main(){
-        YawPitchRollAngles orientation = the_imu.imu_orientation();
-        limelight.updateRobotOrientation(orientation.getYaw());// updating limelight
+        if (limelight == null) {
+            noLimeTele = true;
+            return;
+        }
         llResult = limelight.getLatestResult();// pulls data from limelight
         if (llResult != null && llResult.isValid()) { // if the result is a thing and is valid do:
             distance = getDistanceFromTag((llResult.getTa())); //gets the distances from the tag
@@ -70,18 +73,22 @@ public class LIMELIGHT_setup {
         return distance;
     }
     public double returnLLResultTx(){
+        if (llResult == null) return 0.0;
         return llResult.getTx();
     }
 
     public double returnLLResultTy(){
+        if (llResult == null) return 0.0;
         return llResult.getTy();
     }
 
     public double returnLLResultTa(){
+        if (llResult == null) return 0.0;
         return llResult.getTa();
     }
 
     public double returnTagId(){
+        if (llResult == null || llResult.getFiducialResults().isEmpty()) return 0.0;
         return llResult.getFiducialResults().get(0).getFiducialId();
     }
 

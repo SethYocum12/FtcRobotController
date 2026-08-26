@@ -38,15 +38,17 @@ public class mec_wheels {
         front_left = hwMap.get(DcMotorEx.class, "front_left");
         front_left.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         tprFrontLeft = front_left.getMotorType().getTicksPerRev();
+        front_left.setDirection(DcMotorEx.Direction.REVERSE);
 
         front_right = hwMap.get(DcMotorEx.class, "front_right");
         front_right.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        front_right.setDirection(DcMotorEx.Direction.REVERSE);
+        front_right.setDirection(DcMotorEx.Direction.FORWARD);
         tprFrontRight = front_right.getMotorType().getTicksPerRev();
 
         back_left = hwMap.get(DcMotorEx.class, "back_left");
         back_left.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         tprBackLeft = back_left.getMotorType().getTicksPerRev();
+        back_left.setDirection(DcMotorEx.Direction.FORWARD);
 
         back_right = hwMap.get(DcMotorEx.class, "back_right");
         back_right.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
