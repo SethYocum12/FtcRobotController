@@ -11,8 +11,9 @@ public class servos {
 
     public void init(HardwareMap hwMap){
         left_servo = hwMap.get(CRServo.class,"left_servo");
-        left_servo.setDirection(DcMotorSimple.Direction.REVERSE);
+        left_servo.setDirection(DcMotorSimple.Direction.FORWARD);
         right_servo = hwMap.get(CRServo.class,"right_servo");
+        right_servo.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void servos_move(boolean activation_button, double intake_speed) {
