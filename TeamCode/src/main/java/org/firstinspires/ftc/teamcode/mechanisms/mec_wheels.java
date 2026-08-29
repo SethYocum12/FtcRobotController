@@ -36,24 +36,27 @@ public class mec_wheels {
 
         //DcMotor Init
         front_left = hwMap.get(DcMotorEx.class, "front_left");
+        front_left.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         front_left.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         tprFrontLeft = front_left.getMotorType().getTicksPerRev();
         front_left.setDirection(DcMotorEx.Direction.REVERSE);
 
         front_right = hwMap.get(DcMotorEx.class, "front_right");
+        front_right.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         front_right.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         front_right.setDirection(DcMotorEx.Direction.FORWARD);
         tprFrontRight = front_right.getMotorType().getTicksPerRev();
 
         back_left = hwMap.get(DcMotorEx.class, "back_left");
+        back_left.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         back_left.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         tprBackLeft = back_left.getMotorType().getTicksPerRev();
-        back_left.setDirection(DcMotorEx.Direction.FORWARD);
 
         back_right = hwMap.get(DcMotorEx.class, "back_right");
+        back_right.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         back_right.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         back_right.setDirection(DcMotorEx.Direction.REVERSE);
-        tprBackRight = front_left.getMotorType().getTicksPerRev();
+        tprBackRight = back_right.getMotorType().getTicksPerRev();
 
         intake_wheels = hwMap.get(DcMotor.class,"intake_wheels");
         intake_wheels.setDirection(DcMotorSimple.Direction.REVERSE);

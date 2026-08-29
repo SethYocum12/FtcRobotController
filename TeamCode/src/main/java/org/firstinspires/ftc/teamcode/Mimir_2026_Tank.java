@@ -83,7 +83,7 @@ public class Mimir_2026_Tank extends OpMode {
         telemetry.addData("Left Wheel Revs", motors.getLeftWheelRevs()); //shows the speed of the left side
         telemetry.addData("Right Wheel Revs", motors.getRightWheelRevs()); //shows the speed of the right side
         telemetry.addData("Intake On?", intake_toggle); //shows if the toggable intake is on
-        telemetry.addData("Heading", the_imu.getHeading()); //shows the heading of the robot
+        telemetry.addData("Heading", the_imu.getHeading() * (180/Math.PI)); //shows the heading of the robot in degrees
         externalTelemetry("Distance", the_limelight.returnDistance(), the_limelight.distanceTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
         externalTelemetry("Target X", the_limelight.returnLLResultTx(), the_limelight.txTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
         externalTelemetry("Target Y", the_limelight.returnLLResultTy(), the_limelight.tyTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.

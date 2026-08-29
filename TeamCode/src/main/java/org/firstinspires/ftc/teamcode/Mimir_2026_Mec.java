@@ -18,9 +18,6 @@ public class Mimir_2026_Mec extends OpMode {
     IMU_setup the_imu = new IMU_setup(); //creates a new imu class
     servos servos = new servos(); //creates a new servo class
     LIMELIGHT_setup the_limelight = new LIMELIGHT_setup(); // creates a new limelight class
-    private final ElapsedTime runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS); //init for the main timer
-
-
 
     public void externalTelemetry(String name, double data, boolean telemetryTrigger){
         if (telemetryTrigger){
@@ -30,19 +27,17 @@ public class Mimir_2026_Mec extends OpMode {
 
     //movement variables
     double x_axis;
-
     double y_axis;
+    double rotX;
+    double rotY;
     double rotation;
 
     //powers
     double intakeSpeed = -1;
-
-    double rotationMultiplier = 10;
-
-    //timers
+    double rotationMultiplier = 2;
 
     //other
-
+    boolean resetYaw;
     //intake
 
     boolean intakeToggle = false;
@@ -62,7 +57,11 @@ public class Mimir_2026_Mec extends OpMode {
         servos.init(hardwareMap); // Added missing initialization
         the_imu.init(hardwareMap); // initialization of IMU
         the_limelight.init(hardwareMap); //initialization of limelight
-        runtime.reset();
+    }
+
+    @Override
+    public void start() {
+        the_limelight.limelight_start();
     }
 
     @Override
@@ -71,24 +70,33 @@ public class Mimir_2026_Mec extends OpMode {
         x_axis = gamepad1.right_stick_x;
         y_axis = -gamepad1.right_stick_y;
         rotation = gamepad1.left_stick_x;
+        resetYaw = gamepad1.back;
         turboTrigger = gamepad1.right_bumper;
-        intakeTrigger = gamepad1.a;
+        intakeTrigger = gamepad2.a;
 
         //calculating Mecanum power
+        rotX = x_axis * Math.cos(-1 * the_imu.getHeading()) - y_axis * Math.sin(-1 * the_imu.getHeading());
+        rotY = x_axis * Math.sin(-1 * the_imu.getHeading()) + y_axis * Math.cos(-1 * the_imu.getHeading());
+
         drive.intakeMode(intakeToggle, intakeSpeed);
         drive.turboMode(turboToggle);
-        drive.main(x_axis, y_axis, rotation, rotationMultiplier);
+        drive.main(rotX, rotY, rotation, rotationMultiplier);
         servos.servos_move(intakeToggle, intakeSpeed);
         the_limelight.main();
+
+        if (resetYaw) {
+            the_imu.resetYaw();
+        }
 
         // finding amount of power to display on driver hub
         telemetry.addData("Front L power", drive.returnFrontLeftPower());
         telemetry.addData("Front R power", drive.returnFrontRightPower());
         telemetry.addData("Back L power", drive.returnBackLeftPower());
         telemetry.addData("Back R power", drive.returnBackRightPower());
+        telemetry.addData("Gamepad2 A" , intakeTrigger);
         telemetry.addData("Turbo Mode?" , turboToggle);
         telemetry.addData("Intake Mode?" , intakeToggle);
-        telemetry.addData("Heading", the_imu.getHeading()); //shows the heading of the robot
+        telemetry.addData("Heading", the_imu.getHeading() * (180/Math.PI)); //shows the heading of the robot
         externalTelemetry("Target X", the_limelight.returnLLResultTx(), the_limelight.txTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
         externalTelemetry("Target Y", the_limelight.returnLLResultTy(), the_limelight.tyTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
         externalTelemetry("Target Area", the_limelight.returnLLResultTa(), the_limelight.taTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.

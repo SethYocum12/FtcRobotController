@@ -24,6 +24,8 @@ public class LIMELIGHT_setup {
             limelight.pipelineSwitch(8);// finding pipeline
         } catch (Exception e) {
             limelight = null;
+            // this is a safety catch. so when i camera is not pluged in it stops running data and wont crash the whole code
+            // e contans the infromation of what when wrong so if that info is bad then it stopes the limelight code and moves on without errors
         }
     }
 
@@ -60,6 +62,7 @@ public class LIMELIGHT_setup {
             //telemetry.addData("Target y", llResult.getTy());
             //telemetry.addData("Target Area", llResult.getTa());
         } else {
+            distance = 0.0;
             distanceTele = false;
             tyTele = false;
             txTele = false;
@@ -75,6 +78,7 @@ public class LIMELIGHT_setup {
     public double returnLLResultTx(){
         if (llResult == null) return 0.0;
         return llResult.getTx();
+        // saying if i dont have an x axis then be zero same with the y and area down there
     }
 
     public double returnLLResultTy(){
@@ -90,6 +94,7 @@ public class LIMELIGHT_setup {
     public double returnTagId(){
         if (llResult == null || llResult.getFiducialResults().isEmpty()) return 0.0;
         return llResult.getFiducialResults().get(0).getFiducialId();
+        // now its like if i see an april tag im gonna look through all tags until it is right one. if no april tag then return 0
     }
 
     public boolean distanceTele(){
