@@ -9,6 +9,8 @@ import org.firstinspires.ftc.teamcode.mechanisms.LIMELIGHT_setup;
 import org.firstinspires.ftc.teamcode.mechanisms.tank_motors;
 import org.firstinspires.ftc.teamcode.mechanisms.servos;
 
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 @TeleOp
 public class Mimir_2026_Tank extends OpMode {
     IMU_setup the_imu = new IMU_setup(); //creates a new imu class
@@ -16,6 +18,7 @@ public class Mimir_2026_Tank extends OpMode {
     servos servos = new servos(); //creates a new servo class
 
     LIMELIGHT_setup the_limelight = new LIMELIGHT_setup(); // creates a new limelight class
+    private final ElapsedTime hzTimer = new ElapsedTime(); // Timer for frequency tracking
 
     //A function used for telemtry that when a varible is  true, the telemetry is shown. But when it's false nothing happens.
     //Mainly used for external scripts
@@ -26,13 +29,12 @@ public class Mimir_2026_Tank extends OpMode {
     }
 
 
-    //motors
+    // motors
     double left_wheel_button;
     double right_wheel_button;
     boolean intake_button;
 
     // limelight/april tag stuff
-    double distance;
     boolean intake_toggle = false;
     boolean last_intake_button = false;
 
@@ -58,6 +60,10 @@ public class Mimir_2026_Tank extends OpMode {
 
     @Override
     public void loop() {
+        // Frequency calculation
+        double hz = 1.0 / hzTimer.seconds();
+        hzTimer.reset();
+
         // Update gamepad inputs every loop
         left_wheel_button = -gamepad1.left_stick_y; 
         right_wheel_button = -gamepad1.right_stick_y;
@@ -84,6 +90,7 @@ public class Mimir_2026_Tank extends OpMode {
         telemetry.addData("Right Wheel Revs", motors.getRightWheelRevs()); //shows the speed of the right side
         telemetry.addData("Intake On?", intake_toggle); //shows if the toggable intake is on
         telemetry.addData("Heading", the_imu.getHeading() * (180/Math.PI)); //shows the heading of the robot in degrees
+        telemetry.addData("Loop Frequency (Hz)", hz);
         externalTelemetry("Distance", the_limelight.returnDistance(), the_limelight.distanceTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
         externalTelemetry("Target X", the_limelight.returnLLResultTx(), the_limelight.txTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
         externalTelemetry("Target Y", the_limelight.returnLLResultTy(), the_limelight.tyTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.

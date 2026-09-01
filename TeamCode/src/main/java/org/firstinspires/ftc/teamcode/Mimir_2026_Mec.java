@@ -18,6 +18,7 @@ public class Mimir_2026_Mec extends OpMode {
     IMU_setup the_imu = new IMU_setup(); //creates a new imu class
     servos servos = new servos(); //creates a new servo class
     LIMELIGHT_setup the_limelight = new LIMELIGHT_setup(); // creates a new limelight class
+    private final ElapsedTime hzTimer = new ElapsedTime(); // Timer for frequency tracking
 
     public void externalTelemetry(String name, double data, boolean telemetryTrigger){
         if (telemetryTrigger){
@@ -31,6 +32,7 @@ public class Mimir_2026_Mec extends OpMode {
     double rotX;
     double rotY;
     double rotation;
+    double hz;
 
     //powers
     double intakeSpeed = -1;
@@ -66,17 +68,22 @@ public class Mimir_2026_Mec extends OpMode {
 
     @Override
     public void loop() {
-        //setting gamepad variables
-        x_axis = gamepad1.right_stick_x;
-        y_axis = -gamepad1.right_stick_y;
-        rotation = gamepad1.left_stick_x;
+        // Frequency calculation
+        hz = 1.0 / hzTimer.seconds();
+        hzTimer.reset();
+
+        //setting gamepad variables with deadzone
+        x_axis = Math.abs(gamepad1.right_stick_x) > 0.05 ? gamepad1.right_stick_x : 0;
+        y_axis = Math.abs(gamepad1.right_stick_y) > 0.05 ? -gamepad1.right_stick_y : 0;
+        rotation = Math.abs(gamepad1.left_stick_x) > 0.05 ? gamepad1.left_stick_x : 0;
         resetYaw = gamepad1.back;
         turboTrigger = gamepad1.right_bumper;
         intakeTrigger = gamepad2.a;
 
         //calculating Mecanum power
-        rotX = x_axis * Math.cos(-1 * the_imu.getHeading()) - y_axis * Math.sin(-1 * the_imu.getHeading());
-        rotY = x_axis * Math.sin(-1 * the_imu.getHeading()) + y_axis * Math.cos(-1 * the_imu.getHeading());
+        double botHeading = -the_imu.getHeading();
+        rotX = x_axis * Math.cos(botHeading) - y_axis * Math.sin(botHeading);
+        rotY = x_axis * Math.sin(botHeading) + y_axis * Math.cos(botHeading);
 
         drive.intakeMode(intakeToggle, intakeSpeed);
         drive.turboMode(turboToggle);
@@ -96,7 +103,8 @@ public class Mimir_2026_Mec extends OpMode {
         telemetry.addData("Gamepad2 A" , intakeTrigger);
         telemetry.addData("Turbo Mode?" , turboToggle);
         telemetry.addData("Intake Mode?" , intakeToggle);
-        telemetry.addData("Heading", the_imu.getHeading() * (180/Math.PI)); //shows the heading of the robot
+        telemetry.addData("Heading (Degrees)" , the_imu.getHeading() * (180/Math.PI)); //shows the heading of the robot
+        telemetry.addData("Loop Frequency (Hz)", hz);
         externalTelemetry("Target X", the_limelight.returnLLResultTx(), the_limelight.txTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
         externalTelemetry("Target Y", the_limelight.returnLLResultTy(), the_limelight.tyTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
         externalTelemetry("Target Area", the_limelight.returnLLResultTa(), the_limelight.taTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
