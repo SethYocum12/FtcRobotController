@@ -8,6 +8,12 @@
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
+set GRADLE_USER_HOME=%~dp0.gradle_home
+set "ANDROID_PREFS_ROOT="
+set "ANDROID_USER_HOME="
+
+set GRADLE_OPTS=%GRADLE_OPTS% "-Dorg.gradle.user.home=%~dp0.gradle_home" "-DANDROID_USER_HOME=%~dp0.android_home"
+
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 set DEFAULT_JVM_OPTS=
 
