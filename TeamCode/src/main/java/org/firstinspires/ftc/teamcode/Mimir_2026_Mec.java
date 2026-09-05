@@ -126,4 +126,5 @@ public class Mimir_2026_Mec extends OpMode {
         }
         lastIntakeTrigger = intakeTrigger;
     }
+
 }
