@@ -20,8 +20,12 @@ import java.util.regex.Pattern
 apply plugin: 'com.android.application'
 
 android {
-
     compileSdkVersion 34
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
 
     signingConfigs {
         release {
@@ -99,11 +103,6 @@ android {
                 abiFilters "armeabi-v7a", "arm64-v8a"
             }
         }
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     ndkVersion '21.3.6528147'
