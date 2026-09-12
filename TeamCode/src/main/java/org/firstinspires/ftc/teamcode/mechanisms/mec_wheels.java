@@ -50,7 +50,7 @@ public class mec_wheels {
         back_left = hwMap.get(DcMotorEx.class, "back_left");
         back_left.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         back_left.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        back_left.setDirection(DcMotorSimple.Direction.REVERSE);
+        back_left.setDirection(DcMotorSimple.Direction.FORWARD);
         tprBackLeft = back_left.getMotorType().getTicksPerRev();
 
         back_right = hwMap.get(DcMotorEx.class, "back_right");

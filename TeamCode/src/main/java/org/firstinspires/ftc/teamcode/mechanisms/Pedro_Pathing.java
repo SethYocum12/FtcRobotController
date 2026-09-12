@@ -12,12 +12,6 @@ import org.firstinspires.ftc.teamcode.mechanisms.servos;
 
 @TeleOp(name = "Pedro PIDF Tuner", group = "Mimir")
 public class Pedro_Pathing extends LinearOpMode {
-    @Override
-    public void runOpMode() {
-        waitForStart();
-
-    }
-
     private Follower follower;
     private final Pose startPose = new Pose(0, 0, 0);
 

@@ -78,7 +78,7 @@ public class Mimir_2026_Mec extends OpMode {
         rotation = Math.abs(gamepad1.left_stick_x) > 0.05 ? gamepad1.left_stick_x : 0;
         resetYaw = gamepad1.back;
         turboTrigger = gamepad1.right_bumper;
-        intakeTrigger = gamepad2.a;
+        intakeTrigger = gamepad1.a;
 
         //calculating Mecanum power
         double botHeading = -the_imu.getHeading();
@@ -95,12 +95,12 @@ public class Mimir_2026_Mec extends OpMode {
             the_imu.resetYaw();
         }
 
-        // finding amount of power to display on driver hub
-        telemetry.addData("Front L power", drive.returnFrontLeftPower());
-        telemetry.addData("Front R power", drive.returnFrontRightPower());
-        telemetry.addData("Back L power", drive.returnBackLeftPower());
-        telemetry.addData("Back R power", drive.returnBackRightPower());
-        telemetry.addData("Gamepad2 A" , intakeTrigger);
+        // Measured wheel speeds from the motor encoders
+        telemetry.addData("Front L speed (rev/s)", drive.returnFrontLeftPower());
+        telemetry.addData("Front R speed (rev/s)", drive.returnFrontRightPower());
+        telemetry.addData("Back L speed (rev/s)", drive.returnBackLeftPower());
+        telemetry.addData("Back R speed (rev/s)", drive.returnBackRightPower());
+        telemetry.addData("Gamepad1 A" , intakeTrigger);
         telemetry.addData("Turbo Mode?" , turboToggle);
         telemetry.addData("Intake Mode?" , intakeToggle);
         telemetry.addData("Heading (Degrees)" , the_imu.getHeading() * (180/Math.PI)); //shows the heading of the robot
