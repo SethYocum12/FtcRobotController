@@ -1,7 +1,8 @@
 repositories {
     mavenCentral()
     google() // Needed for androidx
-    maven { url = "https://mymaven.bylazar.com/releases" }
+    maven { url 'https://mymaven.bylazar.com/releases' }
+    maven { url 'https://repo.dairy.foundation/releases/' }
 }
 
 dependencies {
@@ -16,8 +17,10 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
 
-    implementation 'com.pedropathing:ftc:2.1.2'
-    implementation 'com.pedropathing:telemetry:1.0.0'
+    // Pedro Pathing 3.x: the FTC hardware layer was renamed 'ftc' -> 'revhub'
+    implementation 'com.pedropathing:revhub:3.0.1'   // pulls in com.pedropathing:core:3.0.1
+    implementation 'com.pedropathing:tuning:1.0.1'   // PIDF + localizer tuning OpModes
     implementation 'com.bylazar:fullpanels:1.0.12'
+    implementation 'com.pedropathing.ivy:pedro:1.1.1'
 }
 
