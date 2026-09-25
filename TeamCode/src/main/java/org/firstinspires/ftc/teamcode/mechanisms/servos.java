@@ -1,6 +1,11 @@
 package org.firstinspires.ftc.teamcode.mechanisms;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
+
+import android.os.Binder;
+
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -9,22 +14,54 @@ public class servos {
     private CRServo left_servo;
     private CRServo right_servo;
 
+    private CRServo indexer_wheel;
+    private DcMotor intake_wheels;
+    private DcMotor outake_wheel;
+    boolean lastIndexerToggle = false;
+
     public void init(HardwareMap hwMap){
         left_servo = hwMap.get(CRServo.class,"left_servo");
         left_servo.setDirection(DcMotorSimple.Direction.REVERSE);
         right_servo = hwMap.get(CRServo.class,"right_servo");
         right_servo.setDirection(DcMotorSimple.Direction.FORWARD);
+        indexer_wheel = hwMap.get(CRServo.class, "indexer_wheel");
+        indexer_wheel.setDirection(DcMotorSimple.Direction.FORWARD);
+        intake_wheels = hwMap.get(DcMotor.class,"intake_wheels");
+        intake_wheels.setDirection(DcMotorSimple.Direction.REVERSE);
+        outake_wheel = hwMap.get(DcMotor.class, "outake_wheel");
+        outake_wheel.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void servos_move(boolean activation_button, double intake_speed) {
         if (activation_button) {
             left_servo.setPower(intake_speed);
             right_servo.setPower(intake_speed);
+            intake_wheels.setPower(intake_speed);
         } else {
             left_servo.setPower(0);
             right_servo.setPower(0);
+            intake_wheels.setPower(0);
         }
     }
+
+    public void indexerthingy( boolean indexerToggle,double intake_speed) {
+     if(indexerToggle == true){
+         indexer_wheel.setPower(intake_speed);
+     } else {
+         indexer_wheel.setPower(0);
+     }
+    }
+    public void shooterthingy(boolean shooterToggle,double intake_speed) {
+        if(shooterToggle == true) {
+            outake_wheel.setPower(intake_speed);
+        }
+        else {
+            outake_wheel.setPower(0);
+        }
+    }
+
+
+
 
     public double getLeftServoPower(){
         return left_servo.getPower();

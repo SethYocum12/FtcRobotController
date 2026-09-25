@@ -19,6 +19,8 @@ public class Mimir_2026_Mec extends OpMode {
     servos servos = new servos(); //creates a new servo class
     LIMELIGHT_setup the_limelight = new LIMELIGHT_setup(); // creates a new limelight class
     private final ElapsedTime hzTimer = new ElapsedTime(); // Timer for frequency tracking
+    private final ElapsedTime shooterTimer = new ElapsedTime();
+    private static final double SHOOTER_SPINUP_SECONDS = 4.0;
 
     public void externalTelemetry(String name, double data, boolean telemetryTrigger){
         if (telemetryTrigger){
@@ -45,12 +47,15 @@ public class Mimir_2026_Mec extends OpMode {
     boolean intakeToggle = false;
     boolean intakeTrigger = false;
     boolean lastIntakeTrigger = false;
+    boolean shooterToggle = false;
+
 
     //turbo
 
     boolean turboToggle = false;
     boolean turboTrigger = false;
     boolean lastTurboTrigger = false;
+    boolean lastShooterTrigger = false;
 
     @Override
     public void init() {
@@ -80,6 +85,18 @@ public class Mimir_2026_Mec extends OpMode {
         turboTrigger = gamepad1.right_bumper;
         intakeTrigger = gamepad1.a;
 
+        // Toggle once per press and restart the delay each time the shooter starts
+        if (gamepad1.y && !lastShooterTrigger) {
+            shooterToggle = !shooterToggle;
+            if (shooterToggle) {
+                shooterTimer.reset();
+            }
+        }
+        lastShooterTrigger = gamepad1.y;
+        // This delay estimates readiness; it does not measure motor speed.
+        boolean indexerRunning = shooterToggle
+                && shooterTimer.seconds() >= SHOOTER_SPINUP_SECONDS;
+
         //calculating Mecanum power
         double botHeading = -the_imu.getHeading();
         rotX = x_axis * Math.cos(botHeading) - y_axis * Math.sin(botHeading);
@@ -89,6 +106,8 @@ public class Mimir_2026_Mec extends OpMode {
         drive.turboMode(turboToggle);
         drive.main(rotX, rotY, rotation, rotationMultiplier);
         servos.servos_move(intakeToggle, intakeSpeed);
+        servos.shooterthingy(shooterToggle, intakeSpeed);
+        servos.indexerthingy(indexerRunning, intakeSpeed);
         the_limelight.main();
 
         if (resetYaw) {
@@ -103,6 +122,8 @@ public class Mimir_2026_Mec extends OpMode {
         telemetry.addData("Gamepad1 A" , intakeTrigger);
         telemetry.addData("Turbo Mode?" , turboToggle);
         telemetry.addData("Intake Mode?" , intakeToggle);
+        telemetry.addData("Shooter", !shooterToggle ? "Off"
+                : indexerRunning ? "Feeding" : "Spinning up");
         telemetry.addData("Heading (Degrees)" , the_imu.getHeading() * (180/Math.PI)); //shows the heading of the robot
         telemetry.addData("Loop Frequency (Hz)", hz);
         externalTelemetry("Target X", the_limelight.returnLLResultTx(), the_limelight.txTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
@@ -125,6 +146,14 @@ public class Mimir_2026_Mec extends OpMode {
             intakeToggle = !intakeToggle;
         }
         lastIntakeTrigger = intakeTrigger;
+    }
+
+    @Override
+    public void stop() {
+        shooterToggle = false;
+        servos.shooterthingy(false, intakeSpeed);
+        servos.indexerthingy(false, intakeSpeed);
+        servos.servos_move(false, intakeSpeed);
     }
 
 }

@@ -17,8 +17,8 @@ public class IMU_setup {
             imu = hwMap.get(IMU.class, "imu");
 
             RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(
-                    RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                    RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+                    RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+                    RevHubOrientationOnRobot.UsbFacingDirection.UP
                     // this is just what way the control hub is facing to know what angle its at
             );
 
