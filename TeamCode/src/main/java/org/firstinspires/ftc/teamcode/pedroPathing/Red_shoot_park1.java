@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 @Autonomous(name = "AutoPath", group = "Autonomous")
-public class AutoPedro extends LinearOpMode {
+public class Red_shoot_park1 extends LinearOpMode {
 
     private Follower follower;
 

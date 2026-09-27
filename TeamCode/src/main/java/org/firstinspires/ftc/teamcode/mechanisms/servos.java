@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 public class servos {
 
@@ -16,7 +17,7 @@ public class servos {
 
     private CRServo indexer_wheel;
     private DcMotor intake_wheels;
-    private DcMotor outake_wheel;
+    private DcMotorEx outake_wheel;
     boolean lastIndexerToggle = false;
 
     public void init(HardwareMap hwMap){
@@ -28,8 +29,18 @@ public class servos {
         indexer_wheel.setDirection(DcMotorSimple.Direction.FORWARD);
         intake_wheels = hwMap.get(DcMotor.class,"intake_wheels");
         intake_wheels.setDirection(DcMotorSimple.Direction.REVERSE);
-        outake_wheel = hwMap.get(DcMotor.class, "outake_wheel");
+        outake_wheel = hwMap.get(DcMotorEx.class, "outake_wheel");
+        outake_wheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         outake_wheel.setDirection(DcMotorSimple.Direction.REVERSE);
+        outake_wheel.setVelocityPIDFCoefficients(40.0, 0.0, 0.0, 12.5);
+    }
+
+    public double getShooterRPM() {
+        return Math.abs(outake_wheel.getVelocity()) * 60.0 / 28.0;
+    }
+
+    public double getShooterVelocity() {
+        return Math.abs(outake_wheel.getVelocity()); // Encoder ticks per second
     }
 
     public void servos_move(boolean activation_button, double intake_speed) {
@@ -51,9 +62,10 @@ public class servos {
          indexer_wheel.setPower(0);
      }
     }
-    public void shooterthingy(boolean shooterToggle,double intake_speed) {
+    public void shooterthingy(boolean shooterToggle, double targetVelocity) {
         if(shooterToggle == true) {
-            outake_wheel.setPower(intake_speed);
+            // Preserve the direction previously used with intakeSpeed = -1.
+            outake_wheel.setVelocity(-targetVelocity);
         }
         else {
             outake_wheel.setPower(0);

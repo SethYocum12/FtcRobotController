@@ -65,6 +65,10 @@ public class Constants {
         //
         // Your old 2.x file had forwardPodY(-5) and strafePodX(0.5), so those are a
         // reasonable starting guess - but they were never verified on the real robot.
+
+        c.xPodOffset.set(158.0);
+        c.yPodOffset.set(-84.0);
+
     });
 
     /**
