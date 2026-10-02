@@ -62,6 +62,14 @@ public class servos {
          indexer_wheel.setPower(0);
      }
     }
+
+    public void indexerthingyBack( boolean indexerToggle,double intake_speed) {
+        if(indexerToggle == true){
+            indexer_wheel.setPower(intake_speed);
+        } else {
+            indexer_wheel.setPower(0);
+        }
+    }
     public void shooterthingy(boolean shooterToggle, double targetVelocity) {
         if(shooterToggle == true) {
             // Preserve the direction previously used with intakeSpeed = -1.

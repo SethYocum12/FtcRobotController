@@ -106,9 +106,9 @@ public class mec_wheels {
     }
     public void turboMode(boolean turboToggle){
         if (turboToggle){
-            driveSpeed = 1;
+            driveSpeed = 1.2;
         } else {
-            driveSpeed = 0.6;
+            driveSpeed = 0.8;
         }
     }
 

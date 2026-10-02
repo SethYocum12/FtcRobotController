@@ -4,6 +4,8 @@ import com.pedropathing.algorithm.Foresight;
 import com.pedropathing.algorithm.ForesightConfig;
 import com.pedropathing.controllers.Controller;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.math.Matrix;
+import com.pedropathing.math.Vector2D;
 import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.drivetrains.MecanumConfig;
 import com.pedropathing.revhub.localizers.PinpointConfig;
@@ -83,9 +85,18 @@ public class Constants {
         c.maxAchievableForwardVelocity.set(67.70526843934547);
         c.maxAchievableStrafeVelocity.set(55.14854515255905);
 
-        // How fast it coasts to a stop with zero power, in inches/sec^2 (measured, negative).
-        c.naturalForwardDeceleration.set(-25.765493295492043);
-        c.naturalStrafeDeceleration.set(-22.01971810239012);
+        // Pedro 3.x requires positive deceleration magnitudes, in inches/sec^2.
+        c.naturalForwardDeceleration.set(25.765493295492043);
+        c.naturalStrafeDeceleration.set(22.01971810239012);
+
+        // Required Pedro 3.x settings. These are EXAMPLE values, not robot measurements.
+        // Replace with this robot's Foresight AutoTune results before relying on path accuracy.
+        // Source: https://pedropathing.com/docs/pathing/tuning/constants
+        c.coast.set(Controller.proportionalFeedforward(0.010978350889324107));
+        c.brake.set(Controller.proportionalFeedforward(0.008731598255925491));
+        c.headingBrakeCoefficients.set(Vector2D.cartesian(0.05642143125655298, 0.0063829525363003695));
+        c.linearBrakeCoefficients.set(Matrix.diag(0.10605894992901523, 0.08719146175596092));
+        c.quadraticBrakeCoefficients.set(Matrix.diag(0.0014663966976606565, 0.0013837064502458813));
 
         // Feedback controllers: Controller.pid(P, I, D). Tune these with the
         // Pedro tuning OpModes (com.pedropathing:tuning) before trusting an auto run.

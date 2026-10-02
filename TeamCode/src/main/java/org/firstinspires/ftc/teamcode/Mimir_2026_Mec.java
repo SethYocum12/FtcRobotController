@@ -36,6 +36,7 @@ public class Mimir_2026_Mec extends OpMode {
 
     //powers
     double intakeSpeed = -1;
+    double indexerSpeed = -0.2; // Change magnitude to adjust indexer servo power.
     double rotationMultiplier = 2;
 
     //other
@@ -58,7 +59,7 @@ public class Mimir_2026_Mec extends OpMode {
         // intake toggle varibles
     private boolean indexerRunning = false;
     // Encoder ticks per second, matching the flywheel tuning OpMode.
-    private static final double SHOOTER_TARGET_VELOCITY = 2300.0;
+    private static final double SHOOTER_TARGET_VELOCITY = 1800.0;
 
     @Override
     public void init() {
@@ -112,7 +113,9 @@ public class Mimir_2026_Mec extends OpMode {
         drive.main(rotX, rotY, rotation, rotationMultiplier);
         servos.servos_move(intakeToggle, intakeSpeed);
         servos.shooterthingy(shooterToggle, SHOOTER_TARGET_VELOCITY);
-        servos.indexerthingy(indexerRunning, intakeSpeed);
+        // Holding X overrides the forward toggle; release to restore its state.
+        servos.indexerthingy(indexerRunning || gamepad1.x,
+                gamepad1.x ? -indexerSpeed : indexerSpeed);
         the_limelight.main();
 
         if (resetYaw) {
@@ -130,7 +133,7 @@ public class Mimir_2026_Mec extends OpMode {
         telemetry.addData("Shooter target (ticks/s)", shooterToggle ? SHOOTER_TARGET_VELOCITY : 0.0);
         telemetry.addData("Shooter velocity (ticks/s)", "%.0f", shooterVelocity);
         telemetry.addData("Shooter", shooterToggle ? "On" : "Off");
-        telemetry.addData("Indexer", indexerRunning ? "On" : "Off");
+        telemetry.addData("Indexer", gamepad1.x ? "Reverse" : indexerRunning ? "On" : "Off");
         telemetry.addData("Heading (Degrees)" , the_imu.getHeading() * (180/Math.PI)); //shows the heading of the robot
         telemetry.addData("Loop Frequency (Hz)", hz);
         externalTelemetry("Target X", the_limelight.returnLLResultTx(), the_limelight.txTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
@@ -160,7 +163,7 @@ public class Mimir_2026_Mec extends OpMode {
         shooterToggle = false;
         indexerRunning = false;
         servos.shooterthingy(false, SHOOTER_TARGET_VELOCITY);
-        servos.indexerthingy(false, intakeSpeed);
+        servos.indexerthingy(false, indexerSpeed);
         servos.servos_move(false, intakeSpeed);
     }
 

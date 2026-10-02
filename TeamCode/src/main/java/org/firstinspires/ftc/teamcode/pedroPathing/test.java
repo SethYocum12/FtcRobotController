@@ -17,36 +17,31 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.mechanisms.IMU_setup;
 
-@Autonomous(name = "Blue Shoot Park1", group = "Autonomous")
-    public class Blue_shoot_park1 extends LinearOpMode {
+@Autonomous(name = "AutoPath", group = "Autonomous")
+    public class test extends LinearOpMode {
 
         IMU_setup the_imu = new IMU_setup();
         private Follower follower;
 
         private final PoseFactory poseFactory = PoseFactory.degrees();
 
-        private final Pose start = poseFactory.of(82.4949, 132.9043, 90);
-        private final Pose path1Start = poseFactory.of(82.4949, 132.9043, 270);
-        private final Pose path1 = poseFactory.of(82.4949, 103.8385, 270);
-        private final Pose point2 = poseFactory.of(129.0391, 46.3025, 180);
-        private final Pose point2Control1 = poseFactory.of(128.9023, 115.8992, 0);
+        private final Pose start = poseFactory.of(132.3287, 8.4289, 90);
+        private final Pose path1Start = poseFactory.of(132.3287, 8.4289, 180);
+        private final Pose path1 = poseFactory.of(131.9907, 23.4805, 180);
 
         // Autonomous routine
         public Command autoRoutine() {
+            if (the_imu != null){
+                the_imu.resetYaw();;
+            }
             return sequential(
-                    follow(follower, path1()),
-                    follow(follower, path2())
+                    follow(follower, path1())
             );
         }
 
         @Override
         public void runOpMode() {
             the_imu.init(hardwareMap);
-
-            if (the_imu != null){
-                the_imu.resetYaw();
-            }
-
             Scheduler.reset();
             follower = Constants.create(hardwareMap);
             follower.setPose(start);
@@ -74,10 +69,6 @@ import org.firstinspires.ftc.teamcode.mechanisms.IMU_setup;
 
         public Path path1() {
             return line(path1Start, path1).linear(path1Start, path1);
-        }
-
-        public Path path2() {
-            return curve(path1, point2Control1, point2).linear(path1, point2);
         }
     }
 
