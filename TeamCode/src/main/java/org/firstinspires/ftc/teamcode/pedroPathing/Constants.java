@@ -52,21 +52,7 @@ public class Constants {
         c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);
         c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
-        // TODO(human): set the two pod offsets.
-        //
-        // The Pinpoint needs to know where each odometry pod sits relative to the
-        // robot's center of rotation, so it can separate "the robot drove forward"
-        // from "the robot spun and dragged the pod sideways".
-        //
-        // Pedro's coordinate frame, looking down at the robot from above:
-        //     +X = forward (the direction the robot drives)
-        //     +Y = left
-        //
-        //   c.xPodOffset.set( ... );   // the FORWARD pod's sideways (Y) distance from center
-        //   c.yPodOffset.set( ... );   // the STRAFE pod's forward (X) distance from center
-        //
-        // Your old 2.x file had forwardPodY(-5) and strafePodX(0.5), so those are a
-        // reasonable starting guess - but they were never verified on the real robot.
+
 
         c.xPodOffset.set(158.0);
         c.yPodOffset.set(-84.0);
