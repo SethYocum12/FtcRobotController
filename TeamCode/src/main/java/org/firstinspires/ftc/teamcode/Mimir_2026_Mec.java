@@ -59,8 +59,7 @@ public class Mimir_2026_Mec extends OpMode {
         // intake toggle varibles
     private boolean indexerRunning = false;
     // Encoder ticks per second, matching the flywheel tuning OpMode.
-    private static final double SHOOTER_TARGET_VELOCITY = 125+
-            0.0;
+    private static final double SHOOTER_TARGET_VELOCITY = 1225.0;
 
     @Override
     public void init() {
