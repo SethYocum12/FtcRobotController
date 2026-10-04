@@ -1,0 +1,10 @@
+.gradle/
+.gradle-user/
+**/.gradle/
+**/.gradle_home/
+**/build/
+**/.idea/
+**/local.properties
+**/*.iml
+logs/
+simulator/

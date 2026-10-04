@@ -1,0 +1,17 @@
+plugins { id 'java'; id 'application' }
+repositories { mavenCentral() }
+java { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+sourceSets.main {
+    java.srcDirs = ['simulator/Controller/src', 'simulator/TeamCode/src', 'shared/src', 'sim-profile/src', 'tools/src']
+    resources { srcDirs = ['simulator/Controller/src']; exclude '**/*.java' }
+}
+dependencies {
+    implementation fileTree(dir: 'dependencies', include: ['*.jar'])
+    implementation fileTree(dir: 'simulator/lib', include: ['*.jar'], exclude: ['*-sources.jar', 'Pedropathing.jar'])
+    ['base', 'graphics', 'controls', 'fxml'].each { m -> implementation "org.openjfx:javafx-${m}:17.0.12:win" }
+}
+application { mainClass = 'lab.Launcher' }
+tasks.register('verifySimulation', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'lab.SimulationChecks'
+}

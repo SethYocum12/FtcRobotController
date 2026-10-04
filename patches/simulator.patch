@@ -1,0 +1,56 @@
+diff --git a/Controller/src/com/qualcomm/hardware/gobilda/GoBildaPinpointDriver.java b/Controller/src/com/qualcomm/hardware/gobilda/GoBildaPinpointDriver.java
+index 0e608a8..e6f70d4 100644
+--- a/Controller/src/com/qualcomm/hardware/gobilda/GoBildaPinpointDriver.java
++++ b/Controller/src/com/qualcomm/hardware/gobilda/GoBildaPinpointDriver.java
+@@ -356,6 +356,7 @@ public class GoBildaPinpointDriver implements HardwareDevice {
+      */
+     public synchronized void setHeading(double heading, AngleUnit angleUnit){
+         Pose2D pos = new Pose2D(DistanceUnit.MM, xPosition, yPosition, angleUnit, heading);
++        setPosition(pos);
+     }
+ 
+     /**
+diff --git a/Controller/src/virtual_robot/config/Config.java b/Controller/src/virtual_robot/config/Config.java
+index f08150f..977e0e4 100644
+--- a/Controller/src/virtual_robot/config/Config.java
++++ b/Controller/src/virtual_robot/config/Config.java
+@@ -6,7 +6,7 @@ import virtual_robot.controller.Game;
+ import virtual_robot.controller.VirtualBot;
+ import virtual_robot.games.Decode;
+ import virtual_robot.games.NoGame;
+-import virtual_robot.robots.classes.MecanumBot;
++import virtual_robot.robots.classes.MecDynamicBot;
+ 
+ /**
+  * Class for configuring field (width and image), and gamepad (virtual vs. real)
+@@ -65,5 +65,5 @@ public class Config {
+     /**
+      *  Default Robot Configuration
+      */
+-    public static final Class<? extends VirtualBot> DEFAULT_BOT = MecanumBot.class;
++    public static final Class<? extends VirtualBot> DEFAULT_BOT = MecDynamicBot.class;
+ }
+diff --git a/Controller/src/virtual_robot/controller/VirtualRobotApplication.java b/Controller/src/virtual_robot/controller/VirtualRobotApplication.java
+index 858e252..39b1be9 100644
+--- a/Controller/src/virtual_robot/controller/VirtualRobotApplication.java
++++ b/Controller/src/virtual_robot/controller/VirtualRobotApplication.java
+@@ -23,6 +23,14 @@ public class VirtualRobotApplication extends Application {
+         controllerHandle = loader.getController();
+         primaryStage.setTitle("Virtual Robot");
+         primaryStage.setScene(new Scene(root));
++        root.applyCss();
++        double width = root.prefWidth(-1);
++        double height = root.prefHeight(width);
++        javafx.geometry.Rectangle2D screen = javafx.stage.Screen.getPrimary().getVisualBounds();
++        double scale = Math.min(1.0, Math.min((screen.getWidth() - 40) / width,
++                (screen.getHeight() - 80) / height));
++        root.getTransforms().add(new javafx.scene.transform.Scale(scale, scale));
++        primaryStage.setScene(new Scene(new javafx.scene.Group(root), width * scale, height * scale));
+         primaryStage.setResizable(false);
+         primaryStage.setOnShowing(new EventHandler<WindowEvent>() {
+             @Override
+@@ -51,3 +59,4 @@ public class VirtualRobotApplication extends Application {
+         launch(args);
+     }
+ }
++
