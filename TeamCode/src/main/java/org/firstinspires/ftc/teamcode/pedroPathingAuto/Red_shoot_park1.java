@@ -1,4 +1,6 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedroPathingAuto;
+
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import static com.pedropathing.api.Paths.*;
 import static com.pedropathing.ivy.Scheduler.schedule;

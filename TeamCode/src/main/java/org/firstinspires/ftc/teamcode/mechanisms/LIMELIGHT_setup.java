@@ -24,7 +24,7 @@ public class LIMELIGHT_setup {
             limelight.pipelineSwitch(8);// finding pipeline
         } catch (Exception e) {
             limelight = null;
-            // this is a safety catch. so when i camera is not pluged in it stops running data and wont crash the whole code
+            // this is a safety catch. so when the camera is not pluged in it stops running data and wont crash the whole code
             // e contans the infromation of what when wrong so if that info is bad then it stopes the limelight code and moves on without errors
         }
     }

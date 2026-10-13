@@ -1,6 +1,6 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedroPathingAuto;
 
-
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import static com.pedropathing.api.Paths.*;
 
@@ -11,26 +11,30 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
 import static com.pedropathing.ivy.Scheduler.schedule;
-import static com.pedropathing.ivy.commands.Commands.*;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-    @Autonomous(name = "Blue park", group = "Autonomous")
-    public class Blue_park extends LinearOpMode {
+import org.firstinspires.ftc.teamcode.mechanisms.IMU_setup;
 
+@Autonomous(name = "AutoPath", group = "Autonomous")
+    public class test extends LinearOpMode {
+
+        IMU_setup the_imu = new IMU_setup();
         private Follower follower;
 
         private final PoseFactory poseFactory = PoseFactory.degrees();
 
-        private final Pose start = poseFactory.of(84.2418, 133.1955, 90);
-        private final Pose path1Start = poseFactory.of(84.2418, 133.1955, 270);
-        private final Pose path1 = poseFactory.of(133.1553, 53.4691, 180);
-        private final Pose path1Control1 = poseFactory.of(125.4702, 104.6718, 0);
+        private final Pose start = poseFactory.of(132.3287, 8.4289, 90);
+        private final Pose path1Start = poseFactory.of(132.3287, 8.4289, 180);
+        private final Pose path1 = poseFactory.of(131.9907, 23.4805, 180);
 
         // Autonomous routine
         public Command autoRoutine() {
+            if (the_imu != null){
+                the_imu.resetYaw();;
+            }
             return sequential(
                     follow(follower, path1())
             );
@@ -38,6 +42,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
         @Override
         public void runOpMode() {
+            the_imu.init(hardwareMap);
             Scheduler.reset();
             follower = Constants.create(hardwareMap);
             follower.setPose(start);
@@ -64,8 +69,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
         }
 
         public Path path1() {
-            return curve(path1Start, path1Control1, path1).linear(path1Start, path1);
+            return line(path1Start, path1).linear(path1Start, path1);
         }
     }
-
 

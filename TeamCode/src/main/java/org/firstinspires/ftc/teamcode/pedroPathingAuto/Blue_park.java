@@ -1,4 +1,7 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedroPathingAuto;
+
+import org.firstinspires.ftc.teamcode.pedro.Constants;
+
 
 
 import static com.pedropathing.api.Paths.*;
@@ -10,22 +13,22 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
 import static com.pedropathing.ivy.Scheduler.schedule;
-import static com.pedropathing.ivy.commands.Commands.*;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-    @Autonomous(name = "Red Park1", group = "Autonomous")
-    public class Red_park extends LinearOpMode {
+    @Autonomous(name = "Blue park", group = "Autonomous")
+    public class Blue_park extends LinearOpMode {
 
         private Follower follower;
 
         private final PoseFactory poseFactory = PoseFactory.degrees();
 
-        private final Pose start = poseFactory.of(56, 8, 90);
-        private final Pose path1 = poseFactory.of(10.0448, 91.4073, 0);
-        private final Pose path1Control1 = poseFactory.of(19.1502, 47.0113, 0);
+        private final Pose start = poseFactory.of(84.2418, 133.1955, 90);
+        private final Pose path1Start = poseFactory.of(84.2418, 133.1955, 270);
+        private final Pose path1 = poseFactory.of(133.1553, 53.4691, 180);
+        private final Pose path1Control1 = poseFactory.of(125.4702, 104.6718, 0);
 
         // Autonomous routine
         public Command autoRoutine() {
@@ -62,7 +65,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
         }
 
         public Path path1() {
-            return curve(start, path1Control1, path1).linear(start, path1);
+            return curve(path1Start, path1Control1, path1).linear(path1Start, path1);
         }
     }
+
 

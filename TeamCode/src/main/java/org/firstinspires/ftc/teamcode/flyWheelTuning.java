@@ -81,17 +81,6 @@ public class flyWheelTuning extends OpMode {
         telemetry.addData("tuning f","%.4f (D-pad R/L",F);
         telemetry.addData("step size","%.4f (B button)",stepSizes[stepIndex]);
 
-
-
-
-
-
-
-
-
-
     }
-
-
 
 }

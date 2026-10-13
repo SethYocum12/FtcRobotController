@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedro;
 
 import com.pedropathing.algorithm.Foresight;
 import com.pedropathing.algorithm.ForesightConfig;
@@ -17,20 +17,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-/**
- * Pedro Pathing 3.x configuration for Mimir.
- *
- * A Follower needs exactly three things:
- *   1. a Localizer  - tells it WHERE the robot is        (our Pinpoint)
- *   2. a Drivetrain - lets it MOVE the robot             (our mecanum wheels)
- *   3. an Algorithm - decides HOW HARD to drive the motors to reach the path (Foresight)
- *
- * In 3.x each of those is configured with a small lambda that sets ConfigVar fields,
- * instead of the .method().method() builder chain that 2.x used.
- */
 public class Constants {
 
-    /** 1. DRIVETRAIN - names must match the Robot Configuration on the Driver Station exactly. */
     public static final MecanumConfig DRIVE = new MecanumConfig(c -> {
         c.frontLeftName.set("front_left");
         c.backLeftName.set("back_left");
@@ -43,29 +31,18 @@ public class Constants {
         c.backRightDirection.set(DcMotorSimple.Direction.REVERSE);
     });
 
-    /** 2. LOCALIZER - the goBILDA Pinpoint odometry computer. */
-    public static final PinpointConfig LOCALIZER = new PinpointConfig(c -> {
+    public static PinpointConfig LOCALIZER = new PinpointConfig(c -> {
         c.name.set("odometry");
         c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        c.offsetUnits.set(DistanceUnit.INCH);
-
+        c.xPodOffset.set(7.057734812338521);
+        c.yPodOffset.set(-3.002521484855592);
         c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);
         c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);
-
-
-
-        c.xPodOffset.set(158.0);
-        c.yPodOffset.set(-84.0);
-
+        c.globalDistanceUnit.set(DistanceUnit.INCH);
+        c.offsetUnits.set(DistanceUnit.INCH);
     });
 
-    /**
-     * 3. ALGORITHM - Foresight looks ahead on the path and decides motor powers.
-     *
-     * These numbers came over from your 2.x constants. The velocity/deceleration values
-     * are real measurements; the PID values are still untuned starting points.
-     * Note: 3.x has no "mass" setting - the deceleration numbers replace it.
-     */
+
     public static final ForesightConfig ALGORITHM = new ForesightConfig(c -> {
         // How fast the robot can actually go, in inches/sec (measured).
         c.maxAchievableForwardVelocity.set(67.70526843934547);
@@ -91,7 +68,6 @@ public class Constants {
         c.headingFeedback.set(Controller.pid(0.4, 0.0, 0.002));
     });
 
-    /** Build a ready-to-use Follower. Every OpMode calls this. */
     public static Follower create(HardwareMap hardwareMap) {
         return new Follower(
                 new PinpointLocalizer(hardwareMap, LOCALIZER),

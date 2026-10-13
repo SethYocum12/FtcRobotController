@@ -3,11 +3,10 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.mechanisms.IMU_setup;
 import org.firstinspires.ftc.teamcode.mechanisms.LIMELIGHT_setup;
 import org.firstinspires.ftc.teamcode.mechanisms.mec_wheels;
-import org.firstinspires.ftc.teamcode.mechanisms.servos;
+import org.firstinspires.ftc.teamcode.mechanisms.servos_and_shooters;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -16,7 +15,7 @@ public class Mimir_2026_Mec extends OpMode {
 
     mec_wheels drive = new mec_wheels(); //creates a new drive class
     IMU_setup the_imu = new IMU_setup(); //creates a new imu class
-    servos servos = new servos(); //creates a new servo class
+    servos_and_shooters servos = new servos_and_shooters(); //creates a new servo class
     LIMELIGHT_setup the_limelight = new LIMELIGHT_setup(); // creates a new limelight class
     private final ElapsedTime hzTimer = new ElapsedTime(); // Timer for frequency tracking
 
