@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.mechanisms.IMU_setup;
 import org.firstinspires.ftc.teamcode.mechanisms.LIMELIGHT_setup;
+import org.firstinspires.ftc.teamcode.mechanisms.ledIndicator;
 import org.firstinspires.ftc.teamcode.mechanisms.mec_wheels;
 import org.firstinspires.ftc.teamcode.mechanisms.servos_and_shooters;
 
@@ -17,6 +18,8 @@ public class Mimir_2026_Mec extends OpMode {
     IMU_setup the_imu = new IMU_setup(); //creates a new imu class
     servos_and_shooters servos = new servos_and_shooters(); //creates a new servo class
     LIMELIGHT_setup the_limelight = new LIMELIGHT_setup(); // creates a new limelight class
+
+    ledIndicator ledIndicator = new ledIndicator();
     private final ElapsedTime hzTimer = new ElapsedTime(); // Timer for frequency tracking
 
     public void externalTelemetry(String name, double data, boolean telemetryTrigger){
@@ -67,6 +70,7 @@ public class Mimir_2026_Mec extends OpMode {
         servos.init(hardwareMap); // Added missing initialization
         the_imu.init(hardwareMap); // initialization of IMU
         the_limelight.init(hardwareMap); //initialization of limelight
+        ledIndicator.init(hardwareMap);
     }
 
     @Override
@@ -120,6 +124,8 @@ public class Mimir_2026_Mec extends OpMode {
         if (resetYaw) {
             the_imu.resetYaw();
         }
+
+        ledIndicator.indicate(shooterToggle, shooterVelocity, SHOOTER_TARGET_VELOCITY);
 
         // Measured wheel speeds from the motor encoders
         telemetry.addData("Front L speed (rev/s)", drive.returnFrontLeftPower());
