@@ -38,7 +38,7 @@ public class RedFrontAutoShoot extends LinearOpMode {
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
-    private final Pose start = poseFactory.of(56.1184, 8.8286, 90);
+    private final Pose start = poseFactory.of(56.1184, 8.8286, 270);
     private final Pose path1 = poseFactory.of(56.2596, 18.0853, 270);
     private final Pose point2Start = poseFactory.of(56.2596, 18.0853, 270);
     private final Pose point2 = poseFactory.of(9.3899, 90.6853, 360);
@@ -51,7 +51,6 @@ public class RedFrontAutoShoot extends LinearOpMode {
                 instant(() -> follower.hold(path1)),
                 startShooter(),
                 waitForShooter(),
-                instant(() -> selectRedCell()),
                 lazy(() -> feedUntilCellDisappears(selectedRedTags)),
                 follow(follower, path2())
         );
@@ -69,9 +68,12 @@ public class RedFrontAutoShoot extends LinearOpMode {
         });
     }
     private Command waitForShooter() {
-        return waitUntil(() ->
-                mechanisms.getShooterVelocity() >= SHOOTER_TARGET_VELOCITY * 0.95
-        ).raceWith(waitMs(3000));
+        return waitUntil(() -> {
+            selectRedCell();
+
+            return selectedRedTags != null
+                    && mechanisms.getShooterVelocity() >= SHOOTER_TARGET_VELOCITY * 0.95;
+        }).raceWith(waitMs(3000));
     }
 
     private boolean isCellVisible(int[] tagIds) {
@@ -101,7 +103,7 @@ public class RedFrontAutoShoot extends LinearOpMode {
 
 
 
-        return hasSeenCell && tagMissingTimer.seconds() >= 0.5;
+        return hasSeenCell && tagMissingTimer.seconds() >= 2.0;
     }
 
     private void selectRedCell() {
@@ -121,16 +123,14 @@ public class RedFrontAutoShoot extends LinearOpMode {
     private Command feedUntilCellDisappears(int[] tagIds) {
         return conditional(
                 () -> tagIds != null
-                        && mechanisms.getShooterVelocity() >= SHOOTER_TARGET_VELOCITY * 0.95
-                        && isCellVisible(tagIds),
+                        && mechanisms.getShooterVelocity() >= SHOOTER_TARGET_VELOCITY * 0.95,
                 sequential(
                         instant(() -> {
                             hasSeenCell = true;
                             tagMissingTimer.reset();
                             mechanisms.indexerthingy(true, INDEXER_POWER);
                         }),
-                        waitUntil(() -> cellDisappeared(tagIds))
-                                .raceWith(waitMs(7000)),
+                        waitMs(7000),
                         stopShooting()
                 ),
                 stopShooting()
@@ -151,6 +151,7 @@ public class RedFrontAutoShoot extends LinearOpMode {
             vision.limelight_start();
             // Preview tags during INIT without scheduling any movement.
             while (opModeInInit()) {
+                vision.main();
                 addVisionTelemetry();
                 telemetry.addLine("Path preview only: shooting stage has not been added.");
                 telemetry.update();
@@ -161,6 +162,7 @@ public class RedFrontAutoShoot extends LinearOpMode {
             schedule(autoRoutine());
 
             while (opModeIsActive()) {
+                vision.main();
                 follower.update();
                 Scheduler.execute();
 
@@ -187,7 +189,6 @@ public class RedFrontAutoShoot extends LinearOpMode {
     }
 
     private void addVisionTelemetry() {
-        vision.main();
         telemetry.addData("Vision", vision.getStatus());
         telemetry.addData("Limelight connected", vision.isConnected());
         telemetry.addData("Vision requested pipeline", LIMELIGHT_setup.APRILTAG_PIPELINE);

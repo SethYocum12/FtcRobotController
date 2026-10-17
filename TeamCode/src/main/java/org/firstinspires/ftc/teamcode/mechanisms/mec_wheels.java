@@ -62,6 +62,21 @@ public class mec_wheels {
 
         intake_wheels = hwMap.get(DcMotor.class,"intake_wheels");
         intake_wheels.setDirection(DcMotorSimple.Direction.REVERSE);
+
+
+    }
+
+    public void setDriveMode(DcMotor.RunMode mode) {
+        DcMotorEx[] motors = {
+                front_left, front_right, back_left, back_right
+        };
+
+        for (DcMotorEx motor : motors) {
+            if (motor.getMode() != mode) {
+                motor.setPower(0);
+                motor.setMode(mode);
+            }
+        }
     }
 
     public void setFrontLeft(double rps){

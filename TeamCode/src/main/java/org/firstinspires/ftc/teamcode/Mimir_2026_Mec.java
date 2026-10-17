@@ -8,13 +8,17 @@ import org.firstinspires.ftc.teamcode.mechanisms.LIMELIGHT_setup;
 import org.firstinspires.ftc.teamcode.mechanisms.ledIndicator;
 import org.firstinspires.ftc.teamcode.mechanisms.mec_wheels;
 import org.firstinspires.ftc.teamcode.mechanisms.servos_and_shooters;
-
+import com.pedropathing.follower.Follower;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
+import org.firstinspires.ftc.teamcode.mechanisms.PositionHold;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 @TeleOp
 public class Mimir_2026_Mec extends OpMode {
 
     mec_wheels drive = new mec_wheels(); //creates a new drive class
+    private final PositionHold positionHold = new PositionHold();
     IMU_setup the_imu = new IMU_setup(); //creates a new imu class
     servos_and_shooters servos = new servos_and_shooters(); //creates a new servo class
     LIMELIGHT_setup the_limelight = new LIMELIGHT_setup(); // creates a new limelight class
@@ -58,6 +62,9 @@ public class Mimir_2026_Mec extends OpMode {
     boolean lastTurboTrigger = false;
     boolean lastShooterTrigger = false;
     boolean lastIndexerTrigger = false;
+    private boolean holdToggle = false;
+    private boolean lastHoldButton = false;
+
         // intake toggle varibles
     private boolean indexerRunning = false;
     // Encoder ticks per second, matching the flywheel tuning OpMode.
@@ -66,6 +73,7 @@ public class Mimir_2026_Mec extends OpMode {
     @Override
     public void init() {
         //init motors and servos.
+        positionHold.init(hardwareMap);
         drive.init(hardwareMap);
         servos.init(hardwareMap); // Added missing initialization
         the_imu.init(hardwareMap); // initialization of IMU
@@ -113,7 +121,25 @@ public class Mimir_2026_Mec extends OpMode {
 
         drive.intakeMode(intakeToggle, intakeSpeed);
         drive.turboMode(turboToggle);
-        drive.main(rotX, rotY, rotation, rotationMultiplier);
+        if (gamepad1.left_bumper && !lastHoldButton) {
+            holdToggle = !holdToggle;
+        }
+        lastHoldButton = gamepad1.left_bumper;
+
+        boolean driverMoving = x_axis != 0 || y_axis != 0 || rotation != 0;
+
+        if (driverMoving) {
+            holdToggle = false;
+        }
+
+        if (holdToggle) {
+            drive.setDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            positionHold.startHolding();
+            positionHold.update();
+        } else {
+            positionHold.stopHolding();
+            drive.setDriveMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            drive.main(rotX, rotY, rotation, rotationMultiplier);}
         servos.servos_move(intakeToggle, intakeSpeed);
         servos.shooterthingy(shooterToggle, SHOOTER_TARGET_VELOCITY);
         // Holding X overrides the forward toggle; release to restore its state.
@@ -165,6 +191,7 @@ public class Mimir_2026_Mec extends OpMode {
 
     @Override
     public void stop() {
+        positionHold.stopHolding();
         the_limelight.limelight_stop();
         shooterToggle = false;
         indexerRunning = false;
