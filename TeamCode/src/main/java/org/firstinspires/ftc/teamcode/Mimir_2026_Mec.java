@@ -165,6 +165,7 @@ public class Mimir_2026_Mec extends OpMode {
 
     @Override
     public void stop() {
+        the_limelight.limelight_stop();
         shooterToggle = false;
         indexerRunning = false;
         servos.shooterthingy(false, SHOOTER_TARGET_VELOCITY);

@@ -1,132 +1,148 @@
 package org.firstinspires.ftc.teamcode.mechanisms;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+/** Shared Limelight access for teleop and autonomous. Call main() each loop. */
 public class LIMELIGHT_setup {
+    public static final int APRILTAG_PIPELINE = 8;
+    private static final long MAX_RESULT_AGE_MS = 250;
     private Limelight3A limelight;
+    private LLResult llResult;
+    private String status = "Not initialized";
+    private double distance;
+    private boolean distanceTele;
+    private boolean tagIdTele;
+    private boolean txTele;
+    private boolean tyTele;
+    private boolean taTele;
+    private boolean noLimeTele = true;
 
-    double distance;
-    LLResult llResult;
-
-    boolean distanceTele;
-    boolean tagIdTele;
-    boolean txTele;
-    boolean tyTele;
-    boolean taTele;
-    boolean noLimeTele;
-
-
-    public void init(HardwareMap hwmap){
+    public void init(HardwareMap hwmap) {
+        limelight_stop();
         try {
-            limelight = hwmap.get(Limelight3A.class, "limelight");// finding april tag hw map
-            limelight.pipelineSwitch(8);// finding pipeline
-        } catch (Exception e) {
+            limelight = hwmap.get(Limelight3A.class, "limelight");
+            limelight.setPollRateHz(50);
+            status = limelight.pipelineSwitch(APRILTAG_PIPELINE)
+                    ? "Ready to start" : "Pipeline switch failed";
+        } catch (RuntimeException e) {
+            if (limelight != null) limelight.stop();
             limelight = null;
-            // this is a safety catch. so when the camera is not pluged in it stops running data and wont crash the whole code
-            // e contans the infromation of what when wrong so if that info is bad then it stopes the limelight code and moves on without errors
+            status = "Unavailable: " + e.getMessage();
         }
     }
 
-    public double getDistanceFromTag(double ta) {
-        // Area decreases with the square of distance, so we use sqrt(ta) to linearize it.
-        // Final calibration: (49.5 actual / 50.0 reported) * 180.4 = 178.6
-        double scale = 178.6;
-        return (scale / Math.sqrt(ta));
+    public void limelight_start() {
+        if (limelight != null) {
+            limelight.start();
+        }
     }
 
-    public void main(){
+    public void limelight_stop() {
+        if (limelight != null) limelight.stop();
+        llResult = null;
+        clearDetection();
+        status = "Stopped";
+    }
+
+    private void clearDetection() {
+        distance = 0;
+        distanceTele = false;
+        tagIdTele = false;
+        txTele = false;
+        tyTele = false;
+        taTele = false;
+        noLimeTele = true;
+    }
+
+    public void main() {
+        clearDetection();
         if (limelight == null) {
-            noLimeTele = true;
+            llResult = null;
             return;
         }
-        llResult = limelight.getLatestResult();// pulls data from limelight
-        if (llResult != null && llResult.isValid()) { // if the result is a thing and is valid do:
-            distance = getDistanceFromTag((llResult.getTa())); //gets the distances from the tag
-            distanceTele = true;
-            // telemetry.addData("distance", distance);
-            // Check for the specific AprilTag ID. fidual is fancy word for april tag
-            if (!llResult.getFiducialResults().isEmpty()) { //if the tag is not empty, return tag ID
-                tagIdTele = true;
-                // telemetry.addData("Tag ID", llResult.getFiducialResults().get(0).getFiducialId());
-            } else {
-                tagIdTele = false;
-            }
-
-            tyTele = true;
+        llResult = limelight.getLatestResult();
+        if (!limelight.isRunning()) {
+            status = "Polling stopped";
+        } else if (!limelight.isConnected()) {
+            status = "Disconnected or waiting for frames";
+        } else if (llResult == null) {
+            status = "Waiting for frames";
+        } else if (llResult.getStaleness() > MAX_RESULT_AGE_MS) {
+            status = "Stale data";
+        } else if (llResult.getPipelineIndex() != APRILTAG_PIPELINE) {
+            status = "Wrong pipeline";
+        } else if (!llResult.isValid() || llResult.getFiducialResults().isEmpty()) {
+            status = "No AprilTag detected";
+        } else {
+            status = "AprilTag detected";
+            tagIdTele = true;
             txTele = true;
+            tyTele = true;
             taTele = true;
             noLimeTele = false;
-            //telemetry.addData("Target x", llResult.getTx());
-            //telemetry.addData("Target y", llResult.getTy());
-            //telemetry.addData("Target Area", llResult.getTa());
-        } else {
-            distance = 0.0;
-            distanceTele = false;
-            tyTele = false;
-            txTele = false;
-            taTele = false;
-            noLimeTele = true;
+            double estimatedDistance = getDistanceFromTag(llResult.getTa());
+            if (Double.isFinite(estimatedDistance) && estimatedDistance > 0) {
+                distance = estimatedDistance;
+                distanceTele = true;
+            }
         }
     }
 
-
-    public double returnDistance(){
-        return distance;
-    }
-    public double returnLLResultTx(){
-        if (llResult == null) return 0.0;
-        return llResult.getTx();
-        // saying if i dont have an x axis then be zero same with the y and area down there
+    private boolean hasFreshTag() {
+        return limelight != null && limelight.isRunning() && limelight.isConnected()
+                && llResult != null && llResult.getStaleness() <= MAX_RESULT_AGE_MS
+                && llResult.getPipelineIndex() == APRILTAG_PIPELINE
+                && llResult.isValid() && !llResult.getFiducialResults().isEmpty();
     }
 
-    public double returnLLResultTy(){
-        if (llResult == null) return 0.0;
-        return llResult.getTy();
+    /** Checks every detected ID. A missing tag alone does not establish a hive tip. */
+    public boolean hasTag(int expectedId) {
+        if (!hasFreshTag()) return false;
+        for (LLResultTypes.FiducialResult tag : llResult.getFiducialResults()) {
+            if (tag.getFiducialId() == expectedId) return true;
+        }
+        return false;
     }
 
-    public double returnLLResultTa(){
-        if (llResult == null) return 0.0;
-        return llResult.getTa();
+    public String getTagIds() {
+        if (!hasFreshTag()) return "None";
+        StringBuilder ids = new StringBuilder();
+        for (LLResultTypes.FiducialResult tag : llResult.getFiducialResults()) {
+            if (ids.length() > 0) ids.append(", ");
+            ids.append(tag.getFiducialId());
+        }
+        return ids.toString();
     }
 
-    public double returnTagId(){
-        if (llResult == null || llResult.getFiducialResults().isEmpty()) return 0.0;
-        return llResult.getFiducialResults().get(0).getFiducialId();
-        // now its like if i see an april tag im gonna look through all tags until it is right one. if no april tag then return 0
+    /** Empirical estimate for the original calibration target, not general 3D range. */
+    public double getDistanceFromTag(double ta) {
+        if (!Double.isFinite(ta) || ta <= 0) return 0;
+        return 178.6 / Math.sqrt(ta);
     }
 
-    public boolean distanceTele(){
-        return distanceTele;
+    public double returnDistance() { return distanceTele() ? distance : 0; }
+    // TX/TY refer to the pipeline's primary target, not a tag selected by hasTag().
+    public double returnLLResultTx() { return hasFreshTag() ? llResult.getTx() : 0; }
+    public double returnLLResultTy() { return hasFreshTag() ? llResult.getTy() : 0; }
+    public double returnLLResultTa() { return hasFreshTag() ? llResult.getTa() : 0; }
+
+    /** Returns the first detected ID for compatibility with existing teleop telemetry. */
+    public double returnTagId() {
+        return hasFreshTag() ? llResult.getFiducialResults().get(0).getFiducialId() : 0;
     }
 
-    public boolean tagIdTele(){
-        return tagIdTele;
-    }
-
-    public boolean txTele(){
-        return txTele;
-    }
-
-    public boolean tyTele(){
-        return tyTele;
-    }
-
-    public boolean taTele(){
-        return taTele;
-    }
-
-    public boolean noLimeTele(){
-        return noLimeTele;
-    }
-
-
-
-    public void limelight_start(){
-        limelight.start();
-    }
-
+    public boolean distanceTele() { return distanceTele && hasFreshTag(); }
+    public boolean tagIdTele() { return tagIdTele && hasFreshTag(); }
+    public boolean txTele() { return txTele && hasFreshTag(); }
+    public boolean tyTele() { return tyTele && hasFreshTag(); }
+    public boolean taTele() { return taTele && hasFreshTag(); }
+    public boolean noLimeTele() { return noLimeTele || !hasFreshTag(); }
+    public String getStatus() { return status; }
+    public boolean isConnected() { return limelight != null && limelight.isConnected(); }
+    public long getResultAgeMs() { return llResult == null ? -1 : llResult.getStaleness(); }
+    public int getPipelineIndex() { return llResult == null ? -1 : llResult.getPipelineIndex(); }
+    public String getPipelineType() { return llResult == null ? "Unknown" : llResult.getPipelineType(); }
 }
-
-

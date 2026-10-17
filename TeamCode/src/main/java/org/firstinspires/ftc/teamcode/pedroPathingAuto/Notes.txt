@@ -1,6 +1,0 @@
-Odo offsets
-
-Forward Odo :
-
-Side Odo : -84mm
-Forward : 158mm

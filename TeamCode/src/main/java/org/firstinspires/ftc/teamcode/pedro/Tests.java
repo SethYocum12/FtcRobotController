@@ -29,6 +29,14 @@ public class Tests extends Procedure {
         HOLD,
         @DisplayName("Line Test")
         LINE,
+        @DisplayName("Single Forward 24 Inches")
+        SINGLE_FORWARD,
+        @DisplayName("Single Left 24 Inches")
+        SINGLE_LEFT,
+        @DisplayName("Single Turn 90 Degrees")
+        SINGLE_TURN,
+        @DisplayName("Single Curve 24 by 24 Inches")
+        SINGLE_CURVE,
         @DisplayName("Curve Test")
         CURVED,
         @DisplayName("Interpolation Test")
@@ -87,6 +95,26 @@ public class Tests extends Procedure {
                 if (!algorithm)
                     throw new IllegalArgumentException("Algorithm is required for Hold Test.");
                 completed = runOpMode(new TestsLine(followerFunction, distance.get()));
+                break;
+            case SINGLE_FORWARD:
+                if (followerFunction == null)
+                    throw new IllegalArgumentException("Drivetrain, localizer and algorithm are required.");
+                completed = runOpMode(new TestsSingleMove(followerFunction, false));
+                break;
+            case SINGLE_LEFT:
+                if (followerFunction == null)
+                    throw new IllegalArgumentException("Drivetrain, localizer and algorithm are required.");
+                completed = runOpMode(new TestsSingleMove(followerFunction, true));
+                break;
+            case SINGLE_TURN:
+                if (followerFunction == null)
+                    throw new IllegalArgumentException("Drivetrain, localizer and algorithm are required.");
+                completed = runOpMode(new TestsSingleTurn(followerFunction));
+                break;
+            case SINGLE_CURVE:
+                if (followerFunction == null)
+                    throw new IllegalArgumentException("Drivetrain, localizer and algorithm are required.");
+                completed = runOpMode(new TestsSingleCurve(followerFunction));
                 break;
             case CURVED:
                 if (!algorithm)
@@ -483,3 +511,140 @@ class TestsPose extends TuningOpMode<Boolean> {
     }
 }
 
+
+
+/** One 24-inch path followed by an explicit endpoint hold, with no reversal. */
+class TestsSingleMove extends TuningOpMode<Boolean> {
+    private final Function<HardwareMap, Follower> followerFunction;
+
+    private final boolean strafe;
+
+    TestsSingleMove(Function<HardwareMap, Follower> followerFunction, boolean strafe) {
+        super(strafe ? "Single Left 24 Inches" : "Single Forward 24 Inches",
+                "Drives 24 inches in the selected direction, then holds the endpoint until STOP. Read Pose while running.", true);
+        this.followerFunction = followerFunction;
+        this.strafe = strafe;
+    }
+
+    @Override
+    protected Boolean runTuningOpMode() throws InterruptedException {
+        Follower follower = followerFunction.apply(hardwareMap);
+        Pose target = strafe ? new Pose(0, 24, 0) : new Pose(24, 0, 0);
+        follower.setPose(Pose.zero());
+        Thread.sleep(1000);
+        waitForStart();
+        if (isStopRequested()) return false;
+        follower.setPose(Pose.zero());
+        follower.update();
+        follower.follow(line(Pose.zero(), target).constant(0));
+        ElapsedTime timer = new ElapsedTime();
+        boolean holding = false;
+        try {
+            while (opModeIsActive()) {
+                follower.update();
+                if (!holding && follower.atParametricEnd()) {
+                    follower.hold(target);
+                    holding = true;
+                }
+                telemetry.addData("State", holding ? "Holding endpoint" : (strafe ? "Strafing left" : "Driving forward"));
+                telemetry.addData("Pose", follower.pose());
+                telemetry.addData("Target", strafe ? "X=0, Y=24 inches, heading=0" : "X=24 inches, Y=0, heading=0");
+                telemetry.update();
+                if (!holding && timer.seconds() > 12) {
+                    telemetry.addLine("Timed out before endpoint; stopping motors.");
+                    telemetry.update();
+                    return false;
+                }
+            }
+            return holding;
+        } finally {
+            follower.stop();
+        }
+    }
+}
+
+
+/** Commands one quarter-turn and keeps holding the target until STOP. */
+class TestsSingleTurn extends TuningOpMode<Boolean> {
+    private final Function<HardwareMap, Follower> followerFunction;
+
+    TestsSingleTurn(Function<HardwareMap, Follower> followerFunction) {
+        super("Single Turn 90 Degrees", "Turns to heading 90 degrees and holds near the starting position until STOP.", true);
+        this.followerFunction = followerFunction;
+    }
+
+    @Override
+    protected Boolean runTuningOpMode() throws InterruptedException {
+        Follower follower = followerFunction.apply(hardwareMap);
+        Pose target = new Pose(0, 0, Math.PI / 2);
+        follower.setPose(Pose.zero());
+        Thread.sleep(1000);
+        waitForStart();
+        if (isStopRequested()) return false;
+        follower.setPose(Pose.zero());
+        follower.update();
+        follower.hold(target);
+        try {
+            while (opModeIsActive()) {
+                follower.update();
+                Pose pose = follower.pose();
+                telemetry.addData("Pose", pose);
+                telemetry.addData("Heading (degrees)", "%.2f", Math.toDegrees(pose.heading()));
+                telemetry.addData("Target", "X=0, Y=0, heading=90 degrees (1.571 radians)");
+                telemetry.update();
+            }
+            return true;
+        } finally {
+            follower.stop();
+        }
+    }
+}
+
+
+/** A single forward-to-left curve, ending with a quarter-turn and endpoint hold. */
+class TestsSingleCurve extends TuningOpMode<Boolean> {
+    private final Function<HardwareMap, Follower> followerFunction;
+
+    TestsSingleCurve(Function<HardwareMap, Follower> followerFunction) {
+        super("Single Curve 24 by 24 Inches", "Curves 24 inches forward and 24 inches left, then holds at heading 90 degrees until STOP.", true);
+        this.followerFunction = followerFunction;
+    }
+
+    @Override
+    protected Boolean runTuningOpMode() throws InterruptedException {
+        Follower follower = followerFunction.apply(hardwareMap);
+        Pose target = new Pose(24, 24, Math.PI / 2);
+        follower.setPose(Pose.zero());
+        Thread.sleep(1000);
+        waitForStart();
+        if (isStopRequested()) return false;
+        follower.setPose(Pose.zero());
+        follower.update();
+        follower.follow(curve(Pose.zero(), new Pose(24, 0, 0), target).tangent());
+        ElapsedTime timer = new ElapsedTime();
+        boolean holding = false;
+        try {
+            while (opModeIsActive()) {
+                follower.update();
+                if (!holding && follower.atParametricEnd()) {
+                    follower.hold(target);
+                    holding = true;
+                }
+                Pose pose = follower.pose();
+                telemetry.addData("State", holding ? "Holding endpoint" : "Following curve");
+                telemetry.addData("Pose", pose);
+                telemetry.addData("Heading (degrees)", "%.2f", Math.toDegrees(pose.heading()));
+                telemetry.addData("Target", "X=24 inches, Y=24 inches, heading=90 degrees");
+                telemetry.update();
+                if (!holding && timer.seconds() > 12) {
+                    telemetry.addLine("Timed out before endpoint; stopping motors.");
+                    telemetry.update();
+                    return false;
+                }
+            }
+            return holding;
+        } finally {
+            follower.stop();
+        }
+    }
+}

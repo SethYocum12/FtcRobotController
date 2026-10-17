@@ -8,56 +8,20 @@ public class ledIndicator {
 
     private Servo ledIndicator;
 
-    private long lastToggleTime = 0;
-    private boolean ledState = false;
-
-    private static final long BLINK_INTERVAL = 750;
+    private static final double RED = 0.300;
+    private static final double GREEN = 0.500;
+    private static final double READY_TOLERANCE = 30;
 
     public void init(HardwareMap hwmap) {
         ledIndicator = hwmap.get(Servo.class, "ledIndicator");
-        ledOff();
-    }
-
-    public void ledOn() {
-        ledIndicator.setPosition(1.0);
-        ledState = true;
-    }
-
-    public void ledOff() {
-        ledIndicator.setPosition(0.0);
-        ledState = false;
+        ledIndicator.setPosition(RED);
     }
 
     public void indicate(boolean shooterState,
                          double shooterSpeed,
                          double targetSpeed) {
 
-        // Shooter off: LED off
-        if (!shooterState) {
-            ledOff();
-            lastToggleTime = 0;
-            return;
-        }
-
-        // Shooter below target speed: blink LED
-        if (shooterSpeed < targetSpeed) {
-
-            long currentTime = System.currentTimeMillis();
-
-            if (currentTime - lastToggleTime >= BLINK_INTERVAL) {
-
-                if (ledState) {
-                    ledOff();
-                } else {
-                    ledOn();
-                }
-
-                lastToggleTime = currentTime;
-            }
-
-        } else {
-            // Shooter at target speed: solid LED
-            ledOn();
-        }
+        boolean ready = shooterState && shooterSpeed >= targetSpeed - READY_TOLERANCE;
+        ledIndicator.setPosition(ready ? GREEN : RED);
     }
 }

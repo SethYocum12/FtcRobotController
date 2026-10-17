@@ -43,29 +43,25 @@ public class Constants {
     });
 
 
+    // Foresight AutoTune results supplied on October 15, 2026.
     public static final ForesightConfig ALGORITHM = new ForesightConfig(c -> {
-        // How fast the robot can actually go, in inches/sec (measured).
-        c.maxAchievableForwardVelocity.set(67.70526843934547);
-        c.maxAchievableStrafeVelocity.set(55.14854515255905);
+        Controller primaryTranslationalForward = Controller.proportional(0.2557425841680563);
+        Controller secondaryTranslationalForward = Controller.proportional(0.09449005128239221);
+        Controller primaryTranslationalLateral = Controller.proportional(0.7409847171804026);
+        Controller secondaryTranslationalLateral = Controller.proportional(0.2737740535218635);
 
-        // Pedro 3.x requires positive deceleration magnitudes, in inches/sec^2.
-        c.naturalForwardDeceleration.set(25.765493295492043);
-        c.naturalStrafeDeceleration.set(22.01971810239012);
-
-        // Required Pedro 3.x settings. These are EXAMPLE values, not robot measurements.
-        // Replace with this robot's Foresight AutoTune results before relying on path accuracy.
-        // Source: https://pedropathing.com/docs/pathing/tuning/constants
-        c.coast.set(Controller.proportionalFeedforward(0.010978350889324107));
-        c.brake.set(Controller.proportionalFeedforward(0.008731598255925491));
-        c.headingBrakeCoefficients.set(Vector2D.cartesian(0.05642143125655298, 0.0063829525363003695));
-        c.linearBrakeCoefficients.set(Matrix.diag(0.10605894992901523, 0.08719146175596092));
-        c.quadraticBrakeCoefficients.set(Matrix.diag(0.0014663966976606565, 0.0013837064502458813));
-
-        // Feedback controllers: Controller.pid(P, I, D). Tune these with the
-        // Pedro tuning OpModes (com.pedropathing:tuning) before trusting an auto run.
-        c.forwardTranslational.set(Controller.pid(0.025, 0.0, 0.003));
-        c.strafeTranslational.set(Controller.pid(0.025, 0.0, 0.003));
-        c.headingFeedback.set(Controller.pid(0.4, 0.0, 0.002));
+        c.forwardTranslational.set(Controller.piecewise(secondaryTranslationalForward).put(2.5, primaryTranslationalForward));
+        c.strafeTranslational.set(Controller.piecewise(secondaryTranslationalLateral).put(2.5, primaryTranslationalLateral));
+        c.coast.set(Controller.proportionalFeedforward(0.017471546002682734));
+        c.brake.set(Controller.proportionalFeedforward(0.014850814102280323));
+        c.headingFeedback.set(Controller.proportional(4.810906986140562));
+        c.headingBrakeCoefficients.set(Vector2D.cartesian(0.05905173952327245, 0.005423407156124606));
+        c.linearBrakeCoefficients.set(Matrix.diag(0.05602441891661327, 0.03505442328251957));
+        c.quadraticBrakeCoefficients.set(Matrix.diag(0.0025863773802547825, 0.0022539721989514594));
+        c.maxAchievableForwardVelocity.set(57.68177972711395);
+        c.maxAchievableStrafeVelocity.set(49.923464660018254);
+        c.naturalForwardDeceleration.set(31.626293589471306);
+        c.naturalStrafeDeceleration.set(59.27211441835567);
     });
 
     public static Follower create(HardwareMap hardwareMap) {

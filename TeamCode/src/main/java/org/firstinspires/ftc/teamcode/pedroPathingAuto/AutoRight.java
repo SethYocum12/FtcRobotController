@@ -1,12 +1,12 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.pedroPathingAuto;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.mechanisms.mec_wheels;
 
-@Autonomous(name = "AutoLeft", group = "Autonomous")
-public class AutoLeft extends LinearOpMode {
+@Autonomous(name = "AutoRight", group = "Autonomous")
+public class AutoRight extends LinearOpMode {
 
     mec_wheels drive = new mec_wheels();
     @Override
@@ -17,7 +17,7 @@ public class AutoLeft extends LinearOpMode {
 
         try {
             if (!opModeIsActive()) return;
-            // moves up to get up wall
+
             drive.setFrontLeft(0.5);
             drive.setFrontRight(0.5);
             drive.setBackLeft(0.5);
@@ -27,14 +27,14 @@ public class AutoLeft extends LinearOpMode {
 
             sleep(250); // Drive for 0.636 seconds.
             if (!opModeIsActive()) return;
-            // goes right to get to the parking zone
-            drive.setFrontLeft(0.5);
-            drive.setFrontRight(-0.5);
-            drive.setBackLeft(-0.5);
-            drive.setBackRight(0.5);
 
-            sleep(1000); // Drive for 1 second
-            
+            drive.setFrontLeft(-0.5);
+            drive.setFrontRight(0.5);
+            drive.setBackLeft(0.5);
+            drive.setBackRight(-0.5);
+
+            sleep(1000); // Drive for 1 second.
+
             drive.setFrontLeft(0);
             drive.setFrontRight(0);
             drive.setBackLeft(0);
