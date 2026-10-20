@@ -22,7 +22,7 @@ import static com.pedropathing.ivy.commands.Commands.waitMs;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import static com.pedropathing.ivy.commands.Commands.conditional;
 import static com.pedropathing.ivy.commands.Commands.lazy;
-@Autonomous(name = "Blue shoot and park (1)", group = "Autonomous")
+@Autonomous(name = "Blue shoot Gar | parkR (1)", group = "Autonomous")
 public class BlueFrontAutoShoot extends LinearOpMode {
 
     private Follower follower;
@@ -145,6 +145,7 @@ public class BlueFrontAutoShoot extends LinearOpMode {
                             mechanisms.indexerthingy(true, INDEXER_POWER);
                         }),
                         waitUntil(() -> {
+                            mechanisms.feedIndexerWithRecovery(feedTimer.seconds(), INDEXER_POWER);
                             stoppedForTagLoss = cellDisappeared(tagIds);
                             return stoppedForTagLoss;
                         }).raceWith(waitMs(MAX_FEED_MS)),

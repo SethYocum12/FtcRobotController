@@ -1,5 +1,4 @@
 package org.firstinspires.ftc.teamcode.pedroPathingAuto;
-
 import com.pedropathing.api.Paths;
 
 import com.pedropathing.api.PoseFactory;
@@ -22,7 +21,7 @@ import static com.pedropathing.ivy.commands.Commands.waitMs;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import static com.pedropathing.ivy.commands.Commands.conditional;
 import static com.pedropathing.ivy.commands.Commands.lazy;
-@Autonomous(name = "Red start good side then shoot, park (1)", group = "Autonomous")
+@Autonomous(name = "Red shoot Gar | parkR (1)", group = "Autonomous")
 public class RedFrontAutoShoot extends LinearOpMode {
 
     private Follower follower;
@@ -30,9 +29,12 @@ public class RedFrontAutoShoot extends LinearOpMode {
     private final LIMELIGHT_setup vision = new LIMELIGHT_setup();
     private static final double SHOOTER_TARGET_VELOCITY = 1225.0;
     private static final double INDEXER_POWER = -0.2;
+    private static final double TAG_MISSING_SECONDS = 2.0;
+    private static final double MAX_FEED_MS = 10000;
     private static final int[] RED_AUDIENCE_TAGS = {34, 35, 36, 37};
     private static final int[] RED_OPPOSITE_TAGS = {30, 31, 32, 33};
     private final ElapsedTime tagMissingTimer = new ElapsedTime();
+    private final ElapsedTime feedTimer = new ElapsedTime();
     private boolean hasSeenCell = false;
     private int[] selectedRedTags;
 
@@ -103,7 +105,7 @@ public class RedFrontAutoShoot extends LinearOpMode {
 
 
 
-        return hasSeenCell && tagMissingTimer.seconds() >= 2.0;
+        return hasSeenCell && tagMissingTimer.seconds() >= TAG_MISSING_SECONDS;
     }
 
     private void selectRedCell() {
@@ -128,9 +130,14 @@ public class RedFrontAutoShoot extends LinearOpMode {
                         instant(() -> {
                             hasSeenCell = true;
                             tagMissingTimer.reset();
+                            feedTimer.reset();
                             mechanisms.indexerthingy(true, INDEXER_POWER);
                         }),
-                        waitMs(7000),
+                        waitUntil(() -> {
+                            double feedSeconds = feedTimer.seconds();
+                            mechanisms.feedIndexerWithRecovery(feedSeconds, INDEXER_POWER);
+                            return cellDisappeared(tagIds);
+                        }).raceWith(waitMs(MAX_FEED_MS)),
                         stopShooting()
                 ),
                 stopShooting()

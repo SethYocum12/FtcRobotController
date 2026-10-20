@@ -66,6 +66,14 @@ public class servos_and_shooters {
             indexer_wheel.setPower(0);
         }
     }
+    /** Three timed nudges during autonomous feeding; this does not detect a jam. */
+    public void feedIndexerWithRecovery(double feedSeconds, double forwardPower) {
+        boolean reversing = (feedSeconds >= 2.0 && feedSeconds < 2.5)
+                || (feedSeconds >= 4.5 && feedSeconds < 5.0)
+                || (feedSeconds >= 6.0 && feedSeconds < 6.5);
+        indexerthingy(true, reversing ? -forwardPower : forwardPower);
+    }
+
     public void shooterthingy(boolean shooterToggle, double targetVelocity) {
         if(shooterToggle == true) {
             // Preserve the direction previously used with intakeSpeed = -1.
