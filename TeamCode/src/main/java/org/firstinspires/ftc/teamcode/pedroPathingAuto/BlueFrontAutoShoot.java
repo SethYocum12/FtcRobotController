@@ -28,12 +28,12 @@ public class BlueFrontAutoShoot extends LinearOpMode {
     private Follower follower;
     private final servos_and_shooters mechanisms = new servos_and_shooters();
     private final LIMELIGHT_setup vision = new LIMELIGHT_setup();
-    private static final double SHOOTER_TARGET_VELOCITY = 1225.0;
+    private static final double SHOOTER_TARGET_VELOCITY = 1278.0;
     private static final double INDEXER_POWER = -0.2;
     private static final int[] BLUE_AUDIENCE_TAGS = {38, 39, 40, 41};
     private static final int[] BLUE_OPPOSITE_TAGS = {42, 43, 44, 45};
     private static final double TAG_MISSING_SECONDS = 2.0;
-    private static final double MAX_FEED_MS = 7000;
+    private static final double MAX_FEED_MS = 10000;
     private final ElapsedTime tagMissingTimer = new ElapsedTime();
     private final ElapsedTime feedTimer = new ElapsedTime();
     private boolean hasSeenCell = false;
@@ -46,7 +46,7 @@ public class BlueFrontAutoShoot extends LinearOpMode {
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
     private final Pose start = poseFactory.of(83.7807, 133.4028, 90);
-    private final Pose path1 = poseFactory.of(84.0404, 124.5349, 90);
+    private final Pose path1 = poseFactory.of(84.0404, 131.5349, 90);
     private final Pose point2Start = poseFactory.of(84.0404, 124.5349, 90);
     private final Pose point2 = poseFactory.of(131.7154, 51.2796, 180);
     private final Pose point2Control1 = poseFactory.of(121.7803, 106.3743, 0);

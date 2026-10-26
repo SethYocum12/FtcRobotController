@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.mechanisms.LIMELIGHT_setup;
 import org.firstinspires.ftc.teamcode.mechanisms.ledIndicator;
 import org.firstinspires.ftc.teamcode.mechanisms.mec_wheels;
 import org.firstinspires.ftc.teamcode.mechanisms.servos_and_shooters;
+import org.firstinspires.ftc.teamcode.mechanisms.AimAssist;
 import com.pedropathing.follower.Follower;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.mechanisms.PositionHold;
@@ -22,6 +23,8 @@ public class Mimir_2026_Mec extends OpMode {
     IMU_setup the_imu = new IMU_setup(); //creates a new imu class
     servos_and_shooters servos = new servos_and_shooters(); //creates a new servo class
     LIMELIGHT_setup the_limelight = new LIMELIGHT_setup(); // creates a new limelight class
+    private final AimAssist aimAssist = new AimAssist(the_limelight);
+
 
     ledIndicator ledIndicator = new ledIndicator();
     private final ElapsedTime hzTimer = new ElapsedTime(); // Timer for frequency tracking
@@ -68,7 +71,7 @@ public class Mimir_2026_Mec extends OpMode {
         // intake toggle varibles
     private boolean indexerRunning = false;
     // Encoder ticks per second, matching the flywheel tuning OpMode.
-    private static final double SHOOTER_TARGET_VELOCITY = 1225.0;
+    private static final double SHOOTER_TARGET_VELOCITY = 1278.0;
 
     @Override
     public void init() {
@@ -150,6 +153,8 @@ public class Mimir_2026_Mec extends OpMode {
         if (resetYaw) {
             the_imu.resetYaw();
         }
+
+
 
         ledIndicator.indicate(shooterToggle, shooterVelocity, SHOOTER_TARGET_VELOCITY);
 
