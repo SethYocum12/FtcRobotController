@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathingAuto;
 
+import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
 import com.pedropathing.api.Paths;
 
 import com.pedropathing.api.PoseFactory;
@@ -169,11 +170,14 @@ public class BlueFrontAutoShoot extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        RobotPanels.attach(this);
         Scheduler.reset();
         mechanisms.init(hardwareMap);
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
+        RobotPanels.preview(path1(), path2());
         follower.update();
+        RobotPanels.follower(follower);
 
         try {
             vision.init(hardwareMap);
@@ -181,6 +185,7 @@ public class BlueFrontAutoShoot extends LinearOpMode {
             // Preview tags during INIT without scheduling any movement.
             while (opModeInInit()) {
                 vision.main();
+                RobotPanels.follower(follower);
                 addVisionTelemetry();
                 telemetry.addLine("Blue shoot and park: START runs the path and shooter.");
                 telemetry.update();
@@ -193,6 +198,7 @@ public class BlueFrontAutoShoot extends LinearOpMode {
             while (opModeIsActive()) {
                 vision.main();
                 follower.update();
+                RobotPanels.follower(follower);
                 Scheduler.execute();
 
                 telemetry.addData("x", follower.pose().x());
@@ -214,15 +220,19 @@ public class BlueFrontAutoShoot extends LinearOpMode {
             mechanisms.shooterthingy(false, 0);
             follower.stop();
             vision.limelight_stop();
+            RobotPanels.stopped();
         }
     }
 
     private void addVisionTelemetry() {
+        double shooterVelocity = mechanisms.getShooterVelocity();
+        RobotPanels.shooter(mechanisms.isShooterEnabled(), shooterVelocity,
+                mechanisms.getShooterTargetVelocity());
         telemetry.addData("Shooting", shootingStatus);
         telemetry.addData("Selected cell", selectedCell);
         telemetry.addData("Feed seconds", "%.2f",
                 "Feeding".equals(shootingStatus) ? feedTimer.seconds() : lastFeedSeconds);
-        telemetry.addData("Shooter velocity (ticks/s)", mechanisms.getShooterVelocity());
+        telemetry.addData("Shooter velocity (ticks/s)", shooterVelocity);
         telemetry.addData("Selected cell visible",
                 selectedBlueTags != null && isCellVisible(selectedBlueTags));
         telemetry.addData("Vision", vision.getStatus());

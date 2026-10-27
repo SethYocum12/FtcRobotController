@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedro;
 
+import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
 import com.pedropathing.math.Pose;
 import com.pedropathing.revhub.localizers.PinpointConfig;
 import com.pedropathing.revhub.localizers.PinpointLocalizer;
@@ -84,6 +85,7 @@ class PinpointCustomPodScalar extends TuningOpMode<Double> {
 
     @Override
     protected Double runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         PinpointConfig config = new PinpointConfig(c -> {
             c.name.set(name);
             c.ticksPerUnit.set(OptionalDouble.of(1.0));
@@ -98,8 +100,12 @@ class PinpointCustomPodScalar extends TuningOpMode<Double> {
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
         while (!isStopRequested()) {
             localizer.update();
+            RobotPanels.pose(localizer.pose());
+            RobotPanels.tick(this);
         }
         return Math.abs((localizer.pose().x() / distance));
     }
@@ -122,6 +128,7 @@ class PinpointForwardDirection extends TuningOpMode<Boolean> {
 
     @Override
     protected Boolean runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         PinpointConfig config = new PinpointConfig(c -> {
             c.name.set(name);
             c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
@@ -141,12 +148,16 @@ class PinpointForwardDirection extends TuningOpMode<Boolean> {
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         // Keep the last reading taken before Stop. After Stop the Pinpoint reports a reset
         // pose (x = 0), so reading it afterwards always returns false (not reversed).
         double x = 0;
         while (!isStopRequested()) {
             localizer.update();
+            RobotPanels.pose(localizer.pose());
+            RobotPanels.tick(this);
             if (!isStopRequested()) {
                 x = localizer.pose().x();
             }
@@ -173,6 +184,7 @@ class PinpointStrafeDirection extends TuningOpMode<Boolean> {
 
     @Override
     protected Boolean runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         PinpointConfig config = new PinpointConfig(c -> {
             c.name.set(name);
             c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
@@ -192,11 +204,15 @@ class PinpointStrafeDirection extends TuningOpMode<Boolean> {
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
         // Keep the last reading taken before Stop. After Stop the Pinpoint reports a reset
         // pose (y = 0), so reading it afterwards always returns false (not reversed).
         double y = 0;
         while (!isStopRequested()) {
             localizer.update();
+            RobotPanels.pose(localizer.pose());
+            RobotPanels.tick(this);
             if (!isStopRequested()) {
                 y = localizer.pose().y();
             }
@@ -229,6 +245,7 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
 
     @Override
     protected List<Double> runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         PinpointConfig config = new PinpointConfig(c -> {
             c.name.set(name);
             c.xPodDirection.set(forwardPodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
@@ -251,18 +268,21 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
         }
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
 
 
         Thread.sleep(1000);
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
 
         localizer.setPose(Pose.zero());
 
         while (!isStopRequested()) {
             previous = localizer.pose();
             localizer.update();
+            RobotPanels.pose(localizer.pose());
 
             telemetry.addData("heading", localizer.pose().heading());
             telemetry.addData("pose", localizer.pose());

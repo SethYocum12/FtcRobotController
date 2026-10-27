@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -16,6 +18,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 @TeleOp
+@Configurable
 public class Mimir_2026_Mec extends OpMode {
 
     mec_wheels drive = new mec_wheels(); //creates a new drive class
@@ -61,20 +64,22 @@ public class Mimir_2026_Mec extends OpMode {
     //turbo
 
     boolean turboToggle = false;
-    boolean turboTrigger = false;
+    boolean turboTrigger = false;                               //67
     boolean lastTurboTrigger = false;
     boolean lastShooterTrigger = false;
     boolean lastIndexerTrigger = false;
     private boolean holdToggle = false;
     private boolean lastHoldButton = false;
+    private static final boolean RED_ALLIANCE = true;
 
         // intake toggle varibles
     private boolean indexerRunning = false;
     // Encoder ticks per second, matching the flywheel tuning OpMode.
-    private static final double SHOOTER_TARGET_VELOCITY = 1278.0;
+    public static volatile double SHOOTER_TARGET_VELOCITY = 1278.0;
 
     @Override
     public void init() {
+        RobotPanels.attach(this);
         //init motors and servos.
         positionHold.init(hardwareMap);
         drive.init(hardwareMap);
@@ -82,6 +87,16 @@ public class Mimir_2026_Mec extends OpMode {
         the_imu.init(hardwareMap); // initialization of IMU
         the_limelight.init(hardwareMap); //initialization of limelight
         ledIndicator.init(hardwareMap);
+    }
+
+    @Override
+    public void init_loop() {
+        positionHold.updateTracking();
+        RobotPanels.pose(positionHold.getPose());
+        telemetry.addData("Panels", "Ready: field, telemetry, graphs, joystick inputs and Limelight");
+        telemetry.addData("Field origin", "TeleOp INIT pose; set RobotPanels start coordinates before INIT");
+        telemetry.addData("Limelight", the_limelight.getStatus());
+        telemetry.update();
     }
 
     @Override
@@ -113,7 +128,7 @@ public class Mimir_2026_Mec extends OpMode {
             indexerRunning = !indexerRunning;
         }
         lastIndexerTrigger = gamepad1.b;
-
+        the_limelight.main();
         double shooterVelocity = servos.getShooterVelocity();
 
 
@@ -134,21 +149,35 @@ public class Mimir_2026_Mec extends OpMode {
         if (driverMoving) {
             holdToggle = false;
         }
-
-        if (holdToggle) {
+        boolean aiming = gamepad1.dpad_up && !driverMoving;
+        if (aiming) {
+            holdToggle = false;
+            positionHold.stopHolding();
+            positionHold.updateTracking();
+            drive.setDriveMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            drive.main(0, 0, aimAssist.getTurn(RED_ALLIANCE), 1.0);
+        } else if (holdToggle) {
             drive.setDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             positionHold.startHolding();
             positionHold.update();
         } else {
             positionHold.stopHolding();
+            positionHold.updateTracking();
             drive.setDriveMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            drive.main(rotX, rotY, rotation, rotationMultiplier);}
+            drive.main(rotX, rotY, rotation, rotationMultiplier);
+        }
         servos.servos_move(intakeToggle, intakeSpeed);
         servos.shooterthingy(shooterToggle, SHOOTER_TARGET_VELOCITY);
         // Holding X overrides the forward toggle; release to restore its state.
         servos.indexerthingy(indexerRunning || gamepad1.x,
                 gamepad1.x ? -indexerSpeed : indexerSpeed);
-        the_limelight.main();
+        if (the_limelight.txTele()) {
+            double errorDegrees = the_limelight.returnLLResultTy();
+            telemetry.addData("Aim error", errorDegrees);
+            telemetry.addData("Aim correction preview",
+                    aimAssist.calculateTurn(errorDegrees));
+        } else {
+            telemetry.addData("Aim assist", "No fresh tag"); }
 
         if (resetYaw) {
             the_imu.resetYaw();
@@ -157,12 +186,18 @@ public class Mimir_2026_Mec extends OpMode {
 
 
         ledIndicator.indicate(shooterToggle, shooterVelocity, SHOOTER_TARGET_VELOCITY);
+        RobotPanels.shooter(shooterToggle, shooterVelocity, SHOOTER_TARGET_VELOCITY);
+        RobotPanels.pose(positionHold.getPose());
+        telemetry.addData("Drive strafe command", x_axis);
+        telemetry.addData("Drive forward command", y_axis);
+        telemetry.addData("Drive turn command", rotation);
+        telemetry.addData("Field relative strafe command", rotX);
+        telemetry.addData("Field relative forward command", rotY);
+        telemetry.addData("Position hold", holdToggle);
+        telemetry.addData("Shooter error (ticks/s)",
+                (shooterToggle ? SHOOTER_TARGET_VELOCITY : 0) - shooterVelocity);
 
         // Measured wheel speeds from the motor encoders
-        telemetry.addData("Front L speed (rev/s)", drive.returnFrontLeftPower());
-        telemetry.addData("Front R speed (rev/s)", drive.returnFrontRightPower());
-        telemetry.addData("Back L speed (rev/s)", drive.returnBackLeftPower());
-        telemetry.addData("Back R speed (rev/s)", drive.returnBackRightPower());
         telemetry.addData("Gamepad1 A" , intakeTrigger);
         telemetry.addData("Turbo Mode?" , turboToggle);
         telemetry.addData("Intake Mode?" , intakeToggle);
@@ -203,6 +238,7 @@ public class Mimir_2026_Mec extends OpMode {
         servos.shooterthingy(false, SHOOTER_TARGET_VELOCITY);
         servos.indexerthingy(false, indexerSpeed);
         servos.servos_move(false, intakeSpeed);
+        RobotPanels.stopped();
     }
 
 }

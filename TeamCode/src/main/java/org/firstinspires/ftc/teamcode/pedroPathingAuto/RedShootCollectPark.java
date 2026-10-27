@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathingAuto;
 
+import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
 import com.pedropathing.api.Paths;
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
@@ -166,12 +167,15 @@ public class RedShootCollectPark extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        RobotPanels.attach(this);
         Scheduler.reset();
         mechanisms.init(hardwareMap);
         mechanisms.servos_move(false, 0);
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
+        RobotPanels.preview(path1(), path2(), path3());
         follower.update();
+        RobotPanels.follower(follower);
 
         try {
             vision.init(hardwareMap);
@@ -179,6 +183,7 @@ public class RedShootCollectPark extends LinearOpMode {
             // Preview tags during INIT without scheduling any movement.
             while (opModeInInit()) {
                 vision.main();
+                RobotPanels.follower(follower);
                 addVisionTelemetry();
                 telemetry.addLine("Red: shoot, collect for 3 seconds after path 2, then park.");
                 telemetry.update();
@@ -191,6 +196,7 @@ public class RedShootCollectPark extends LinearOpMode {
             while (opModeIsActive()) {
                 vision.main();
                 follower.update();
+                RobotPanels.follower(follower);
                 Scheduler.execute();
 
                 telemetry.addData("x", follower.pose().x());
@@ -213,10 +219,14 @@ public class RedShootCollectPark extends LinearOpMode {
             mechanisms.shooterthingy(false, 0);
             follower.stop();
             vision.limelight_stop();
+            RobotPanels.stopped();
         }
     }
 
     private void addVisionTelemetry() {
+        double shooterVelocity = mechanisms.getShooterVelocity();
+        RobotPanels.shooter(mechanisms.isShooterEnabled(), shooterVelocity,
+                mechanisms.getShooterTargetVelocity());
         telemetry.addData("Vision", vision.getStatus());
         telemetry.addData("Limelight connected", vision.isConnected());
         telemetry.addData("Vision requested pipeline", LIMELIGHT_setup.APRILTAG_PIPELINE);

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedro;
 
+import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.drivetrain.Drivetrain;
 import com.pedropathing.localization.Localizer;
@@ -138,6 +139,7 @@ class ForwardVelocity extends TuningOpMode<Double> {
 
     @Override
     protected Double runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -145,6 +147,8 @@ class ForwardVelocity extends TuningOpMode<Double> {
 
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         DrivePowers power = new DrivePowers(1,0,0);
 
@@ -156,9 +160,13 @@ class ForwardVelocity extends TuningOpMode<Double> {
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         while (!end) {
             localizer.update();
+            RobotPanels.pose(localizer.pose());
+            RobotPanels.tick(this);
             if (Math.abs(localizer.pose().x()) > distance) {
                 end = true;
                 drivetrain.stop();
@@ -196,6 +204,7 @@ class StrafeVelocity extends TuningOpMode<Double> {
 
     @Override
     protected Double runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -203,6 +212,8 @@ class StrafeVelocity extends TuningOpMode<Double> {
 
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         DrivePowers power = new DrivePowers(0,1,0);
 
@@ -214,9 +225,13 @@ class StrafeVelocity extends TuningOpMode<Double> {
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         while (!end) {
             localizer.update();
+            RobotPanels.pose(localizer.pose());
+            RobotPanels.tick(this);
             if (Math.abs(localizer.pose().y()) > distance) {
                 end = true;
                 drivetrain.stop();
@@ -259,6 +274,7 @@ class ForwardDeceleration extends TuningOpMode<Double> {
 
     @Override
     protected Double runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -269,17 +285,23 @@ class ForwardDeceleration extends TuningOpMode<Double> {
 
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         DrivePowers power = new DrivePowers(1, 0, 0);
         Thread.sleep(1000);
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         drivetrain.drive(power, false);
 
         while (!stopping) {
             localizer.update();
+            RobotPanels.pose(localizer.pose());
+            RobotPanels.tick(this);
             double currentVelocity = localizer.twist().toVector2D().x();
             if (Math.abs(currentVelocity) > velocity) {
                 previousVelocity = currentVelocity;
@@ -296,6 +318,8 @@ class ForwardDeceleration extends TuningOpMode<Double> {
 
         while (!end) {
             localizer.update();
+            RobotPanels.pose(localizer.pose());
+            RobotPanels.tick(this);
             drivetrain.stop(false);
             double currentVelocity = localizer.twist().toVector2D().x();
             long currentTimeNano = System.nanoTime();
@@ -353,6 +377,7 @@ class StrafeDeceleration extends TuningOpMode<Double> {
 
     @Override
     protected Double runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -363,17 +388,23 @@ class StrafeDeceleration extends TuningOpMode<Double> {
 
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         DrivePowers power = new DrivePowers(0, 1, 0);
         Thread.sleep(1000);
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         drivetrain.drive(power, false);
 
         while (!stopping) {
             localizer.update();
+            RobotPanels.pose(localizer.pose());
+            RobotPanels.tick(this);
             double currentVelocity = localizer.twist().toVector2D().y();
             if (Math.abs(currentVelocity) > velocity) {
                 previousVelocity = currentVelocity;
@@ -391,6 +422,8 @@ class StrafeDeceleration extends TuningOpMode<Double> {
         while (!end) {
             drivetrain.stop(false);
             localizer.update();
+            RobotPanels.pose(localizer.pose());
+            RobotPanels.tick(this);
             double currentVelocity = localizer.twist().toVector2D().y();
             long currentTimeNano = System.nanoTime();
             double dt = (currentTimeNano - previousTimeNano) / 1e9;
@@ -462,11 +495,14 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
 
     @Override
     protected List<Double> runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         List<Double> coefficients = Collections.emptyList();
 
@@ -476,10 +512,14 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
         timer.reset();
 
         while (state != State.DONE && !isStopRequested()) {
             localizer.update();
+            RobotPanels.pose(localizer.pose());
+            RobotPanels.tick(this);
             double currentHeading = localizer.pose().heading();
             totalHeading += Angle.normalizeSigned(currentHeading - previousHeading);
             previousHeading = currentHeading;
@@ -599,11 +639,14 @@ class HeadingTuner extends TuningOpMode<Double> {
 
     @Override
     protected Double runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         times.clear();
         velocities.clear();
@@ -615,6 +658,8 @@ class HeadingTuner extends TuningOpMode<Double> {
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
         timer.reset();
         lastTime = timer.seconds();
         drivetrain.drive(new DrivePowers(0.0, 0.0, POWER), false);
@@ -626,6 +671,10 @@ class HeadingTuner extends TuningOpMode<Double> {
             lastTime = now;
 
             localizer.update();
+
+            RobotPanels.pose(localizer.pose());
+
+            RobotPanels.tick(this);
 
             if (!done) {
                 times.add(timer.seconds());
@@ -725,11 +774,14 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
 
     @Override
     protected List<Double> runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         POWERS = biasedGradient(trials, maxPower, minPower, bias);
 
@@ -739,12 +791,16 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
         timer.reset();
 
         drivetrain.drive(new DrivePowers(maxPower,0,0), false);
 
         while (state != State.DONE && !isStopRequested()) {
             localizer.update();
+            RobotPanels.pose(localizer.pose());
+            RobotPanels.tick(this);
             direction = (iteration % 2 == 0) ? 1 : -1;
             if (iteration < POWERS.length) {
                 power = POWERS[iteration];
@@ -893,11 +949,14 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
 
     @Override
     protected List<Double> runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         POWERS = biasedGradient(trials, maxPower, minPower, bias);
 
@@ -907,12 +966,16 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
         timer.reset();
 
         drivetrain.drive(new DrivePowers(0,maxPower,0), false);
 
         while (state != State.DONE && !isStopRequested()) {
             localizer.update();
+            RobotPanels.pose(localizer.pose());
+            RobotPanels.tick(this);
             direction = (iteration % 2 == 0) ? 1 : -1;
             if (iteration < POWERS.length) {
                 power = POWERS[iteration];
@@ -1052,11 +1115,14 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
 
     @Override
     protected List<Double> runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         times.clear();
         velocities.clear();
@@ -1068,6 +1134,8 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
         timer.reset();
         lastTime = timer.seconds();
         drivetrain.drive(new DrivePowers(POWER, 0.0, 0.0), false);
@@ -1079,6 +1147,10 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
             lastTime = now;
 
             localizer.update();
+
+            RobotPanels.pose(localizer.pose());
+
+            RobotPanels.tick(this);
 
             if (!done) {
                 times.add(timer.seconds());
@@ -1172,11 +1244,14 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
 
     @Override
     protected List<Double> runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
 
         times.clear();
         velocities.clear();
@@ -1188,6 +1263,8 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
+        RobotPanels.tick(this);
         timer.reset();
         lastTime = timer.seconds();
         drivetrain.drive(new DrivePowers(0.0, POWER, 0.0), false);
@@ -1199,6 +1276,10 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
             lastTime = now;
 
             localizer.update();
+
+            RobotPanels.pose(localizer.pose());
+
+            RobotPanels.tick(this);
 
             if (!done) {
                 times.add(timer.seconds());

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathingAuto;
 
+import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import static com.pedropathing.api.Paths.*;
@@ -42,17 +43,21 @@ import org.firstinspires.ftc.teamcode.mechanisms.IMU_setup;
 
         @Override
         public void runOpMode() {
+        RobotPanels.attach(this);
             the_imu.init(hardwareMap);
             Scheduler.reset();
             follower = Constants.create(hardwareMap);
             follower.setPose(start);
+        RobotPanels.preview(path1());
             follower.update();
+            RobotPanels.follower(follower);
 
             waitForStart();
             schedule(autoRoutine());
 
             while (opModeIsActive()) {
                 follower.update();
+                RobotPanels.follower(follower);
                 Scheduler.execute();
 
                 telemetry.addData("x", follower.pose().x());

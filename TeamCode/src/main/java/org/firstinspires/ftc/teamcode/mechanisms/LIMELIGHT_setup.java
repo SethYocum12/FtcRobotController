@@ -4,6 +4,7 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
 
 /** Shared Limelight access for teleop and autonomous. Call main() each loop. */
 public class LIMELIGHT_setup {
@@ -61,6 +62,7 @@ public class LIMELIGHT_setup {
         clearDetection();
         if (limelight == null) {
             llResult = null;
+            RobotPanels.vision(this);
             return;
         }
         llResult = limelight.getLatestResult();
@@ -89,6 +91,7 @@ public class LIMELIGHT_setup {
                 distanceTele = true;
             }
         }
+        RobotPanels.vision(this);
     }
 
     private boolean hasFreshTag() {

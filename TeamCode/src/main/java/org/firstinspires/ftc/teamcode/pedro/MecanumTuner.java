@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedro;
 
+import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
 import com.pedropathing.tuning.autotune.*;
 import com.pedropathing.tuning.autotune.Display.FourWheelBot.Wheel;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -85,10 +86,12 @@ class SpinMotor extends TuningOpMode<Void> {
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     protected Void runTuningOpMode() {
+        RobotPanels.attach(this);
         DcMotor motor = hardwareMap.dcMotor.get(name);
         waitForStart();
         motor.setPower(0.5);
         while (opModeIsActive()) {
+            RobotPanels.tick(this);
         }
         motor.setPower(0);
         return null;

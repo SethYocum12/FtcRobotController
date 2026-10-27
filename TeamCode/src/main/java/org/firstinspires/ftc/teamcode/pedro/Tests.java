@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedro;
 
+import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
 import com.pedropathing.algorithm.Algorithm;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.drivetrain.Drivetrain;
@@ -168,15 +169,20 @@ class TestsHold extends TuningOpMode<Boolean> {
 
     @Override
     public Boolean runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Follower follower = followerFunction.apply(hardwareMap);
         follower.setPose(Pose.zero());
         Thread.sleep(1000);
         waitForStart();
         follower.setPose(Pose.zero());
         follower.update();
+        RobotPanels.follower(follower);
+        RobotPanels.tick(this);
         follower.hold(Pose.zero());
         while (opModeIsActive()) {
             follower.update();
+            RobotPanels.follower(follower);
+            RobotPanels.tick(this);
         }
         return true;
     }
@@ -194,6 +200,7 @@ class TestsLine extends TuningOpMode<Boolean> {
 
     @Override
     public Boolean runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Follower follower = followerFunction.apply(hardwareMap);
         follower.setPose(Pose.zero());
 
@@ -207,10 +214,14 @@ class TestsLine extends TuningOpMode<Boolean> {
         waitForStart();
         follower.setPose(Pose.zero());
         follower.update();
+        RobotPanels.follower(follower);
+        RobotPanels.tick(this);
         follower.follow(path1);
 
         while (opModeIsActive()) {
             follower.update();
+            RobotPanels.follower(follower);
+            RobotPanels.tick(this);
             if (follower.atParametricEnd()) {
                 if (forward) {
                     follower.follow(path2);
@@ -236,6 +247,7 @@ class TestsCurve extends TuningOpMode<Boolean> {
 
     @Override
     public Boolean runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Follower follower = followerFunction.apply(hardwareMap);
         follower.setPose(Pose.zero());
 
@@ -249,10 +261,14 @@ class TestsCurve extends TuningOpMode<Boolean> {
         waitForStart();
         follower.setPose(Pose.zero());
         follower.update();
+        RobotPanels.follower(follower);
+        RobotPanels.tick(this);
         follower.follow(path1);
 
         while (opModeIsActive()) {
             follower.update();
+            RobotPanels.follower(follower);
+            RobotPanels.tick(this);
             if (follower.atParametricEnd()) {
                 if (forward) {
                     follower.follow(path2);
@@ -278,6 +294,7 @@ class TestsInterpolation extends TuningOpMode<Boolean> {
 
     @Override
     public Boolean runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Follower follower = followerFunction.apply(hardwareMap);
         follower.setPose(Pose.zero());
 
@@ -291,10 +308,14 @@ class TestsInterpolation extends TuningOpMode<Boolean> {
         waitForStart();
         follower.setPose(Pose.zero());
         follower.update();
+        RobotPanels.follower(follower);
+        RobotPanels.tick(this);
         follower.follow(path1);
 
         while (opModeIsActive()) {
             follower.update();
+            RobotPanels.follower(follower);
+            RobotPanels.tick(this);
             if (follower.atParametricEnd()) {
                 if (forward) {
                     follower.follow(path2);
@@ -320,6 +341,7 @@ class TestsLocalization extends TuningOpMode<Boolean> {
 
     @Override
     public Boolean runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -332,6 +354,7 @@ class TestsLocalization extends TuningOpMode<Boolean> {
         while (opModeIsActive()) {
             drivetrain.drive(new DrivePowers(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x), true);
             localizer.update();
+            RobotPanels.pose(localizer.pose());
             telemetry.addData("Pose", localizer.pose());
             telemetry.update();
         }
@@ -370,6 +393,7 @@ class TestsOdometry extends TuningOpMode<Boolean> {
 
     @Override
     public Boolean runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -383,6 +407,7 @@ class TestsOdometry extends TuningOpMode<Boolean> {
 
         while (opModeIsActive()) {
             localizer.update();
+            RobotPanels.pose(localizer.pose());
 
             if (localizer.pose().x() != Pose.zero().x() || localizer.pose().y() != Pose.zero().y() || localizer.pose().heading() != Pose.zero().heading()) {
                 double currentHeading = localizer.pose().heading();
@@ -478,9 +503,11 @@ class TestsDriving extends TuningOpMode<Boolean> {
 
     @Override
     public Boolean runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
         waitForStart();
         while (opModeIsActive()) {
+            RobotPanels.tick(this);
             drivetrain.drive(new DrivePowers(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x), true);
         }
         return true;
@@ -497,13 +524,16 @@ class TestsPose extends TuningOpMode<Boolean> {
 
     @Override
     public Boolean runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Thread.sleep(1000);
         waitForStart();
         localizer.setPose(Pose.zero());
         localizer.update();
+        RobotPanels.pose(localizer.pose());
         while (opModeIsActive()) {
             localizer.update();
+            RobotPanels.pose(localizer.pose());
             telemetry.addData("Pose", localizer.pose());
             telemetry.update();
         }
@@ -528,6 +558,7 @@ class TestsSingleMove extends TuningOpMode<Boolean> {
 
     @Override
     protected Boolean runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Follower follower = followerFunction.apply(hardwareMap);
         Pose target = strafe ? new Pose(0, 24, 0) : new Pose(24, 0, 0);
         follower.setPose(Pose.zero());
@@ -536,12 +567,14 @@ class TestsSingleMove extends TuningOpMode<Boolean> {
         if (isStopRequested()) return false;
         follower.setPose(Pose.zero());
         follower.update();
+        RobotPanels.follower(follower);
         follower.follow(line(Pose.zero(), target).constant(0));
         ElapsedTime timer = new ElapsedTime();
         boolean holding = false;
         try {
             while (opModeIsActive()) {
                 follower.update();
+                RobotPanels.follower(follower);
                 if (!holding && follower.atParametricEnd()) {
                     follower.hold(target);
                     holding = true;
@@ -575,6 +608,7 @@ class TestsSingleTurn extends TuningOpMode<Boolean> {
 
     @Override
     protected Boolean runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Follower follower = followerFunction.apply(hardwareMap);
         Pose target = new Pose(0, 0, Math.PI / 2);
         follower.setPose(Pose.zero());
@@ -583,10 +617,12 @@ class TestsSingleTurn extends TuningOpMode<Boolean> {
         if (isStopRequested()) return false;
         follower.setPose(Pose.zero());
         follower.update();
+        RobotPanels.follower(follower);
         follower.hold(target);
         try {
             while (opModeIsActive()) {
                 follower.update();
+                RobotPanels.follower(follower);
                 Pose pose = follower.pose();
                 telemetry.addData("Pose", pose);
                 telemetry.addData("Heading (degrees)", "%.2f", Math.toDegrees(pose.heading()));
@@ -612,6 +648,7 @@ class TestsSingleCurve extends TuningOpMode<Boolean> {
 
     @Override
     protected Boolean runTuningOpMode() throws InterruptedException {
+        RobotPanels.attach(this);
         Follower follower = followerFunction.apply(hardwareMap);
         Pose target = new Pose(24, 24, Math.PI / 2);
         follower.setPose(Pose.zero());
@@ -620,12 +657,14 @@ class TestsSingleCurve extends TuningOpMode<Boolean> {
         if (isStopRequested()) return false;
         follower.setPose(Pose.zero());
         follower.update();
+        RobotPanels.follower(follower);
         follower.follow(curve(Pose.zero(), new Pose(24, 0, 0), target).tangent());
         ElapsedTime timer = new ElapsedTime();
         boolean holding = false;
         try {
             while (opModeIsActive()) {
                 follower.update();
+                RobotPanels.follower(follower);
                 if (!holding && follower.atParametricEnd()) {
                     follower.hold(target);
                     holding = true;

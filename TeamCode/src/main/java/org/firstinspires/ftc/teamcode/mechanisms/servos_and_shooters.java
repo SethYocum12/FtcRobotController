@@ -15,6 +15,8 @@ public class servos_and_shooters {
     private DcMotor intake_wheels;
     private DcMotorEx outake_wheel;
     boolean lastIndexerToggle = false;
+    private boolean shooterEnabled;
+    private double shooterTarget;
 
     public void init(HardwareMap hwMap){
         left_servo = hwMap.get(CRServo.class,"left_servo");
@@ -38,6 +40,9 @@ public class servos_and_shooters {
     public double getShooterVelocity() {
         return Math.abs(outake_wheel.getVelocity()); // Encoder ticks per second
     }
+
+    public boolean isShooterEnabled() { return shooterEnabled; }
+    public double getShooterTargetVelocity() { return shooterTarget; }
 
     public void servos_move(boolean activation_button, double intake_speed) {
         if (activation_button) {
@@ -75,6 +80,8 @@ public class servos_and_shooters {
     }
 
     public void shooterthingy(boolean shooterToggle, double targetVelocity) {
+        shooterEnabled = shooterToggle;
+        shooterTarget = shooterToggle ? targetVelocity : 0;
         if(shooterToggle == true) {
             // Preserve the direction previously used with intakeSpeed = -1.
             outake_wheel.setVelocity(-targetVelocity);

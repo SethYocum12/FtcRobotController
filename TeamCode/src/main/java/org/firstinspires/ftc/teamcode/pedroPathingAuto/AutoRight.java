@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathingAuto;
 
+import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -11,6 +12,7 @@ public class AutoRight extends LinearOpMode {
     mec_wheels drive = new mec_wheels();
     @Override
     public void runOpMode() {
+        RobotPanels.attach(this);
         drive.init(hardwareMap);
 
         waitForStart();

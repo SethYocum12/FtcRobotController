@@ -18,4 +18,26 @@ public class AimAssist {
         double turn = errorDegrees * TURN_GAIN;
         return Math.max(-MAX_TURN, Math.min(MAX_TURN, turn));
     }
+
+    public boolean hasAimTarget(boolean redAlliance) {
+        if (!vision.tyTele()) {
+            return false;
+        }
+
+        double tagId = vision.returnTagId();
+
+        if (redAlliance) {
+            return tagId >= 30 && tagId <= 37;
+        }
+
+        return tagId >= 38 && tagId <= 45;
+    }
+    public double getTurn(boolean redAlliance) {
+        if (!hasAimTarget(redAlliance)) {
+            return 0;
+        }
+
+        return calculateTurn(vision.returnLLResultTy());
+    }
+
 }
