@@ -207,6 +207,10 @@ public class Mimir_2026_Mec extends OpMode {
         telemetry.addData("Indexer", gamepad1.x ? "Reverse" : indexerRunning ? "On" : "Off");
         telemetry.addData("Heading (Degrees)" , the_imu.getHeading() * (180/Math.PI)); //shows the heading of the robot
         telemetry.addData("Loop Frequency (Hz)", hz);
+        telemetry.addData("Camera status", the_limelight.getStatus());
+        telemetry.addData("Camera connected", the_limelight.isConnected());
+        telemetry.addData("Camera pipeline", the_limelight.getPipelineIndex());
+        telemetry.addData("Camera data age", the_limelight.getResultAgeMs());
         externalTelemetry("Target X", the_limelight.returnLLResultTx(), the_limelight.txTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
         externalTelemetry("Target Y", the_limelight.returnLLResultTy(), the_limelight.tyTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
         externalTelemetry("Target Area", the_limelight.returnLLResultTa(), the_limelight.taTele()); //uses the external Telemetry function to only display data sometimes from the tank_limelight.java file.
