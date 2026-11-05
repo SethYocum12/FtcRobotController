@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
 import com.pedropathing.math.Pose;
+import com.pedropathing.math.Velocity;
 
 
 public class PositionHold {
@@ -41,6 +42,10 @@ public class PositionHold {
             follower.update();
         }
     }
+    public Velocity getVelocity() {
+        return follower.velocity();
+    }
+
 
     /** Updates tracking only; never calls the follower's motor-control update. */
     public void updateTracking() {

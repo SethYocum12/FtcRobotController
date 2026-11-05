@@ -8,6 +8,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 public class servos_and_shooters {
 
+    private static final double INDEXER_REVERSE_INTERVAL_SECONDS = 3.0;
+    private static final double INDEXER_REVERSE_DURATION_SECONDS = 0.7;
+
+
     private CRServo left_servo;
     private CRServo right_servo;
 
@@ -44,6 +48,10 @@ public class servos_and_shooters {
     public boolean isShooterEnabled() { return shooterEnabled; }
     public double getShooterTargetVelocity() { return shooterTarget; }
 
+    public double getMaxShooterVelocity() {
+        return outake_wheel.getMotorType().getAchieveableMaxTicksPerSecond();
+    }
+
     public void servos_move(boolean activation_button, double intake_speed) {
         if (activation_button) {
             left_servo.setPower(intake_speed);
@@ -71,11 +79,12 @@ public class servos_and_shooters {
             indexer_wheel.setPower(0);
         }
     }
-    /** Three timed nudges during autonomous feeding; this does not detect a jam. */
+    /** Reverse for 0.7 seconds at 3, 6, 9, ... seconds after feeding starts. */
     public void feedIndexerWithRecovery(double feedSeconds, double forwardPower) {
-        boolean reversing = (feedSeconds >= 2.0 && feedSeconds < 2.5)
-                || (feedSeconds >= 4.5 && feedSeconds < 5.0)
-                || (feedSeconds >= 6.0 && feedSeconds < 6.5);
+        double pulseStart = Math.floor(feedSeconds / INDEXER_REVERSE_INTERVAL_SECONDS)
+                * INDEXER_REVERSE_INTERVAL_SECONDS;
+        boolean reversing = pulseStart >= INDEXER_REVERSE_INTERVAL_SECONDS
+                && feedSeconds < pulseStart + INDEXER_REVERSE_DURATION_SECONDS;
         indexerthingy(true, reversing ? -forwardPower : forwardPower);
     }
 
@@ -89,6 +98,14 @@ public class servos_and_shooters {
         else {
             outake_wheel.setPower(0);
         }
+    }
+
+    public boolean isShooterReady(){
+        return shooterEnabled
+                    && shooterTarget > 0
+                    && getShooterVelocity() >= shooterTarget *0.97;
+
+
     }
 
 

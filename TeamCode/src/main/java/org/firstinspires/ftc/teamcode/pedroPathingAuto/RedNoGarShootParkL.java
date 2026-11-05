@@ -36,9 +36,9 @@ public class RedNoGarShootParkL extends LinearOpMode {
 
     // Front toward the starting wall; rear shooter toward the field.
     private final Pose start = poseFactory.of(62.4163, 133.5944, 90);
-    private final Pose path1 = poseFactory.of(57.3912, 122.1899, 90);
+    private final Pose path1 = poseFactory.of(57.3912, 130.5, 90);
     private final Pose path1Control1 = poseFactory.of(71.7645, 122.0174, 0);
-    private final Pose point2Start = poseFactory.of(57.3912, 122.1899, 90);
+    private final Pose point2Start = poseFactory.of(57.3912, 130.5, 90);
     private final Pose point2 = poseFactory.of(14.3288, 121.1823, 0);
     private final Pose point2Control1 = poseFactory.of(36.655, 105.747, 0);
 
@@ -76,6 +76,7 @@ public class RedNoGarShootParkL extends LinearOpMode {
             waitForStart();
             if (isStopRequested()) return;
             autoTimer.reset();
+            shooting.rememberAlliance();
             schedule(autoRoutine());
 
             while (opModeIsActive()) {

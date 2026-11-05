@@ -21,8 +21,8 @@ import org.firstinspires.ftc.teamcode.mechanisms.AutonomousShooting;
 import org.firstinspires.ftc.teamcode.mechanisms.servos_and_shooters;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-@Autonomous(name = "Blue Shoot No Gar | parkR (1) ", group = "Autonomous")
-public class BlueNoGarShootParkR extends LinearOpMode {
+@Autonomous(name = "Blue No Gar shoot | parkR mid (1)", group = "Autonomous")
+public class BlueNoGarShootParkRMidWWR extends LinearOpMode {
 
     private Follower follower;
     private final servos_and_shooters mechanisms = new servos_and_shooters();
@@ -37,18 +37,21 @@ public class BlueNoGarShootParkR extends LinearOpMode {
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
     // Front toward the starting wall; rear shooter toward the field.
-    private final Pose start = poseFactory.of(83.7807, 133.4028, 90);
-    private final Pose path1 = poseFactory.of(84.0404, 131.5349, 90);
-    private final Pose point2Start = poseFactory.of(84.0404, 124.5349, 90);
-    // 18-inch robot: center 11 inches from the right wall leaves 2 inches clear.
-    private final Pose point2 = poseFactory.of(130.5, 51.2796, 180);
-    private final Pose point2Control1 = poseFactory.of(121.7803, 106.3743, 0);
+    private final Pose start = poseFactory.of(79.2271, 8.2857, 270);
+    private final Pose path1 = poseFactory.of(81.7739, 11, 270);
+    private final Pose point2Start = poseFactory.of(84.7739, 11, 270);
+    private final Pose point2 = poseFactory.of(83.9521, 108.6192, 270);
+    private final Pose point2Control1 = poseFactory.of(63.7028, 65.9557, 0);
+    private final Pose point3Start = poseFactory.of(83.9521, 108.6192, 270);
+    private final Pose point3 = poseFactory.of(127.1834, 50.8638, 180);
+    private final Pose point3Control1 = poseFactory.of(133.3828, 109.4128, 0);
 
     // All shooting autos share the tag trigger and the 20-second departure rule.
     public Command autoRoutine() {
         return sequential(
                 shooting.approachAndShoot(follower, path1(), path1),
-                follow(follower, path2())
+                follow(follower, path2()),
+                follow(follower, path3())
         );
     }
 
@@ -59,7 +62,7 @@ public class BlueNoGarShootParkR extends LinearOpMode {
         mechanisms.init(hardwareMap);
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
-        RobotPanels.preview(path1(), path2());
+        RobotPanels.preview(path1(), path2(), path3());
         follower.update();
         RobotPanels.follower(follower);
 
@@ -78,6 +81,7 @@ public class BlueNoGarShootParkR extends LinearOpMode {
             waitForStart();
             if (isStopRequested()) return;
             autoTimer.reset();
+            shooting.rememberAlliance();
             schedule(autoRoutine());
 
             while (opModeIsActive()) {
@@ -139,5 +143,9 @@ public class BlueNoGarShootParkR extends LinearOpMode {
 
     public Path path2() {
         return Paths.curve(point2Start, point2Control1, point2).linear(point2Start, point2);
+    }
+
+    public Path path3() {
+        return Paths.curve(point3Start, point3Control1, point3).linear(point3Start, point3);
     }
 }

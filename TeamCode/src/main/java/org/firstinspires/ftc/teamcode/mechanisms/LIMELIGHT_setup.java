@@ -20,6 +20,7 @@ public class LIMELIGHT_setup {
     private boolean tyTele;
     private boolean taTele;
     private boolean noLimeTele = true;
+    private int lastAimTagId = -1;
 
     public void init(HardwareMap hwmap) {
         limelight_stop();
@@ -92,6 +93,45 @@ public class LIMELIGHT_setup {
             }
         }
         RobotPanels.vision(this);
+    }
+
+
+    public LLResultTypes.FiducialResult getAimTag(boolean redAlliance) {
+        if (!hasFreshTag()) {
+            return null;
+        }
+
+        // Prefer the measured target if it is present; do not alter auto's hasTag().
+        for (LLResultTypes.FiducialResult tag : llResult.getFiducialResults()) {
+            int id = tag.getFiducialId();
+            if (id == ShotCalibration.CALIBRATED_TAG_ID
+                    && (redAlliance ? id >= 30 && id <= 37 : id >= 38 && id <= 45)) {
+                return tag;
+            }
+        }
+
+        // Keep the same visible tag when the detector changes list order.
+        for (LLResultTypes.FiducialResult tag : llResult.getFiducialResults()) {
+            int id = tag.getFiducialId();
+            if (id == lastAimTagId
+                    && (redAlliance ? id >= 30 && id <= 37 : id >= 38 && id <= 45)) {
+                return tag;
+            }
+        }
+
+        for (LLResultTypes.FiducialResult tag : llResult.getFiducialResults()) {
+            int id = tag.getFiducialId();
+
+            boolean correctAlliance = redAlliance
+                    ? id >= 30 && id <= 37
+                    : id >= 38 && id <= 45;
+
+            if (correctAlliance) {
+                lastAimTagId = id;
+                return tag;
+            }
+        }
+        return null;
     }
 
     private boolean hasFreshTag() {

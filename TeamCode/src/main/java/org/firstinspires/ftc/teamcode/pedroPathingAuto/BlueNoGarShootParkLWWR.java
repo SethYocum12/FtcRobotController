@@ -21,8 +21,8 @@ import org.firstinspires.ftc.teamcode.mechanisms.AutonomousShooting;
 import org.firstinspires.ftc.teamcode.mechanisms.servos_and_shooters;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-@Autonomous(name = "Blue shoot Gar | parkR (1)", group = "Autonomous")
-public class BlueGarShootParkR extends LinearOpMode {
+@Autonomous(name = "Blue No Gar shoot | parkL (1)", group = "Autonomous")
+public class BlueNoGarShootParkLWWR extends LinearOpMode {
 
     private Follower follower;
     private final servos_and_shooters mechanisms = new servos_and_shooters();
@@ -37,11 +37,11 @@ public class BlueGarShootParkR extends LinearOpMode {
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
     // Front toward the starting wall; rear shooter toward the field.
-    private final Pose start = poseFactory.of(86.0943, 133.2468, 90);
-    private final Pose path1 = poseFactory.of(86.052, 119.3212, 90);
-    private final Pose point2Start = poseFactory.of(86.052, 119.3212, 90);
-    private final Pose point2 = poseFactory.of(126.4923, 50.9973, 180);
-    private final Pose point2Control1 = poseFactory.of(124.6982, 91.6523, 0);
+    private final Pose start = poseFactory.of(79.2181, 8.324, 270);
+    private final Pose path1 = poseFactory.of(83.1011, 13.0302, 270);
+    private final Pose point2Start = poseFactory.of(83.1011, 13.0302, 270);
+    private final Pose point2 = poseFactory.of(126.0291, 19.4637, 180);
+    private final Pose point2Control1 = poseFactory.of(102.3488, 37.995, 0);
 
     // All shooting autos share the tag trigger and the 20-second departure rule.
     public Command autoRoutine() {
@@ -77,6 +77,7 @@ public class BlueGarShootParkR extends LinearOpMode {
             waitForStart();
             if (isStopRequested()) return;
             autoTimer.reset();
+            shooting.rememberAlliance();
             schedule(autoRoutine());
 
             while (opModeIsActive()) {

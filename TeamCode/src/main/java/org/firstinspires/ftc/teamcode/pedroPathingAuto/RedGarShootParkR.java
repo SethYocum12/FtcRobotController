@@ -36,8 +36,8 @@ public class RedGarShootParkR extends LinearOpMode {
 
     // Front toward the starting wall; rear shooter toward the field.
     private final Pose start = poseFactory.of(55.2543, 7.9512, 270);
-    private final Pose path1 = poseFactory.of(55.348, 17.4366, 270);
-    private final Pose point2Start = poseFactory.of(55.348, 17.4366, 270);
+    private final Pose path1 = poseFactory.of(55.348, 11, 270);
+    private final Pose point2Start = poseFactory.of(55.348, 11, 270);
     private final Pose point2 = poseFactory.of(13.6482, 90.0607, 0);
     private final Pose point2Control1 = poseFactory.of(7.3403, 48.2372, 0);
 
@@ -75,6 +75,7 @@ public class RedGarShootParkR extends LinearOpMode {
             waitForStart();
             if (isStopRequested()) return;
             autoTimer.reset();
+            shooting.rememberAlliance();
             schedule(autoRoutine());
 
             while (opModeIsActive()) {

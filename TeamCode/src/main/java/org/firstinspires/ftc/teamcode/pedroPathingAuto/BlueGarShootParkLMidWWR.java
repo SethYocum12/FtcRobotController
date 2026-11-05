@@ -1,26 +1,28 @@
 package org.firstinspires.ftc.teamcode.pedroPathingAuto;
 
-import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
-import com.pedropathing.api.Paths;
-
-import com.pedropathing.api.PoseFactory;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.math.Pose;
-import com.pedropathing.paths.Path;
-import com.pedropathing.ivy.Command;
-import com.pedropathing.ivy.Scheduler;
 import static com.pedropathing.ivy.Scheduler.schedule;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
+
+import com.pedropathing.api.Paths;
+import com.pedropathing.api.PoseFactory;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.ivy.Command;
+import com.pedropathing.ivy.Scheduler;
+import com.pedropathing.math.Pose;
+import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import org.firstinspires.ftc.teamcode.pedro.Constants;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
 import org.firstinspires.ftc.teamcode.mechanisms.LIMELIGHT_setup;
 import org.firstinspires.ftc.teamcode.mechanisms.AutonomousShooting;
 import org.firstinspires.ftc.teamcode.mechanisms.servos_and_shooters;
-import com.qualcomm.robotcore.util.ElapsedTime;
-@Autonomous(name = "Red Gar Shoot | mid L park (1)", group = "Autonomous")
-public class RedGarShootParkLMid extends LinearOpMode {
+import org.firstinspires.ftc.teamcode.pedro.Constants;
+
+@Autonomous(name = "Blue shoot Gar | parkL mid (1)", group = "Autonomous")
+public class BlueGarShootParkLMidWWR extends LinearOpMode {
 
     private Follower follower;
     private final servos_and_shooters mechanisms = new servos_and_shooters();
@@ -29,25 +31,27 @@ public class RedGarShootParkLMid extends LinearOpMode {
     private static final double INDEXER_POWER = -0.2;
     private final ElapsedTime autoTimer = new ElapsedTime();
     private final AutonomousShooting shooting = new AutonomousShooting(
-            mechanisms, vision, autoTimer::seconds, true,
+            mechanisms, vision, autoTimer::seconds, false,
             SHOOTER_TARGET_VELOCITY, INDEXER_POWER);
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
     // Front toward the starting wall; rear shooter toward the field.
-    private final Pose start = poseFactory.of(56, 8, 270);
-    private final Pose path1 = poseFactory.of(57.1747, 19.3398, 270);
-    private final Pose point2Start = poseFactory.of(57.1747, 19.3398, 270);
-    // 18-inch robot: center 11 inches from the left wall leaves 2 inches clear.
-    private final Pose point2 = poseFactory.of(11, 121.7579, 0);
-    private final Pose point2Control1 = poseFactory.of(67.2936, 44.6694, 0);
-    private final Pose point2Control2 = poseFactory.of(78.454, 134.5618, 0);
+    private final Pose start = poseFactory.of(86.1432, 132.9229, 90);
+    private final Pose path1 = poseFactory.of(85.9641, 128.2361, 90);
+    private final Pose point2Start = poseFactory.of(85.9641, 128.2361, 90);
+    private final Pose point2 = poseFactory.of(89.0782, 31.9316, 180);
+    private final Pose point2Control1 = poseFactory.of(58.6186, 56.1074, 0);
+    private final Pose point3Start = poseFactory.of(89.0782, 31.9316, 180);
+    private final Pose point3 = poseFactory.of(128.1831, 21.1903, 180);
+    private final Pose point3Control1 = poseFactory.of(114.1478, 6.7952, 0);
 
     // All shooting autos share the tag trigger and the 20-second departure rule.
     public Command autoRoutine() {
         return sequential(
                 shooting.approachAndShoot(follower, path1(), path1),
-                follow(follower, path2())
+                follow(follower, path2()),
+                follow(follower, path3())
         );
     }
 
@@ -58,7 +62,7 @@ public class RedGarShootParkLMid extends LinearOpMode {
         mechanisms.init(hardwareMap);
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
-        RobotPanels.preview(path1(), path2());
+        RobotPanels.preview(path1(), path2(), path3());
         follower.update();
         RobotPanels.follower(follower);
 
@@ -77,6 +81,7 @@ public class RedGarShootParkLMid extends LinearOpMode {
             waitForStart();
             if (isStopRequested()) return;
             autoTimer.reset();
+            shooting.rememberAlliance();
             schedule(autoRoutine());
 
             while (opModeIsActive()) {
@@ -137,7 +142,10 @@ public class RedGarShootParkLMid extends LinearOpMode {
     }
 
     public Path path2() {
-        return Paths.curve(point2Start, point2Control1, point2Control2, point2)
-                .linear(point2Start, point2);
+        return Paths.curve(point2Start, point2Control1, point2).linear(point2Start, point2);
+    }
+
+    public Path path3() {
+        return Paths.curve(point3Start, point3Control1, point3).linear(point3Start, point3);
     }
 }
