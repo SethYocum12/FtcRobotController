@@ -93,7 +93,8 @@ public final class AutonomousShooting {
             int oppositeStart = redAlliance ? 30 : 42;
             boolean audienceVisible = groupVisible(audienceStart);
             boolean oppositeVisible = groupVisible(oppositeStart);
-            boolean ready = mechanisms.getShooterVelocity() >= targetVelocity * SHOOTER_READY_RATIO;
+            boolean ready = mechanisms.getShooterVelocity() >= targetVelocity * SHOOTER_READY_RATIO
+                    && mechanisms.isShooterReady();
             if (audienceVisible == oppositeVisible || !ready) return;
 
             selectedGroupStart = audienceVisible ? audienceStart : oppositeStart;
@@ -102,6 +103,13 @@ public final class AutonomousShooting {
             status = "Feeding until 20 seconds; tag trigger latched";
         }
         // Once feeding starts, tag loss does not end it or reset the recovery pulses.
+        // Recheck flywheel speed for EVERY ball, not only the initial tag trigger.
+        if (!mechanisms.isShooterReady()) {
+            mechanisms.indexerthingy(false, 0);
+            status = "Feed paused: " + mechanisms.getShooterFeedStatus();
+            return;
+        }
+        status = "Feeding until 20 seconds; speed checked continuously";
         mechanisms.feedIndexerWithRecovery(getFeedSeconds(), indexerPower);
     }
 

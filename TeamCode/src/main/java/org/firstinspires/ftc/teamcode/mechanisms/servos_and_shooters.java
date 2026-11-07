@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class servos_and_shooters {
 
@@ -21,6 +22,8 @@ public class servos_and_shooters {
     boolean lastIndexerToggle = false;
     private boolean shooterEnabled;
     private double shooterTarget;
+    private final ElapsedTime flywheelClock = new ElapsedTime();
+    private final FlywheelReadiness flywheelReadiness = new FlywheelReadiness();
 
     public void init(HardwareMap hwMap){
         left_servo = hwMap.get(CRServo.class,"left_servo");
@@ -98,15 +101,18 @@ public class servos_and_shooters {
         else {
             outake_wheel.setPower(0);
         }
+        // Sample every loop, including manual shooting; never reset the dwell
+        // simply because setVelocity is called again with the same target.
+        isShooterReady();
     }
 
     public boolean isShooterReady(){
-        return shooterEnabled
-                    && shooterTarget > 0
-                    && getShooterVelocity() >= shooterTarget *0.97;
-
-
+        return flywheelReadiness.update(flywheelClock.seconds(), shooterEnabled,
+                shooterTarget, getShooterVelocity());
     }
+
+    public String getShooterFeedStatus() { return flywheelReadiness.getStatus(); }
+    public int getFlywheelSpeedDrops() { return flywheelReadiness.getSpeedDrops(); }
 
 
 

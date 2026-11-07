@@ -19,8 +19,8 @@ import org.firstinspires.ftc.teamcode.mechanisms.LIMELIGHT_setup;
 import org.firstinspires.ftc.teamcode.mechanisms.AutonomousShooting;
 import org.firstinspires.ftc.teamcode.mechanisms.servos_and_shooters;
 import com.qualcomm.robotcore.util.ElapsedTime;
-@Autonomous(name = "Red No Gar shoot | Park R mid (1) ", group = "Autonomous")
-public class RedNoGarShootParkRMid extends LinearOpMode {
+@Autonomous(name = "Red shoot Gar | parkR (1) ", group = "Autonomous")
+public class RedGarShootParkRWWR extends LinearOpMode {
 
     private Follower follower;
     private final servos_and_shooters mechanisms = new servos_and_shooters();
@@ -35,23 +35,17 @@ public class RedNoGarShootParkRMid extends LinearOpMode {
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
     // Front toward the starting wall; rear shooter toward the field.
-    private final Pose start = poseFactory.of(62.2681, 133.2729, 90);
-    private final Pose path1 = poseFactory.of(56.617, 130.5, 90);
-    private final Pose point2Start = poseFactory.of(56.617, 130.5, 90);
-    private final Pose point2 = poseFactory.of(41.3493, 23.7627, 0);
-    private final Pose point2Control1 = poseFactory.of(60.2783, 107.2883, 0);
-    private final Pose point2Control2 = poseFactory.of(55.5511, 94.4529, 0);
-    private final Pose point2Control3 = poseFactory.of(96.1952, 56.0919, 0);
-    private final Pose point3Start = poseFactory.of(41.3493, 23.7627, 0);
-    private final Pose point3 = poseFactory.of(14.0105, 92.5297, 0);
-    private final Pose point3Control1 = poseFactory.of(15.2437, 68.1668, 0);
+    private final Pose start = poseFactory.of(55.2543, 7.9512, 270);
+    private final Pose path1 = poseFactory.of(55.348, 11, 270);
+    private final Pose point2Start = poseFactory.of(55.348, 11, 270);
+    private final Pose point2 = poseFactory.of(13.6482, 90.0607, 0);
+    private final Pose point2Control1 = poseFactory.of(7.3403, 48.2372, 0);
 
     // All shooting autos share the tag trigger and the 20-second departure rule.
     public Command autoRoutine() {
         return sequential(
                 shooting.approachAndShoot(follower, path1(), path1),
-                follow(follower, path2()),
-                follow(follower, path3())
+                follow(follower, path2())
         );
     }
 
@@ -62,7 +56,7 @@ public class RedNoGarShootParkRMid extends LinearOpMode {
         mechanisms.init(hardwareMap);
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
-        RobotPanels.preview(path1(), path2(), path3());
+        RobotPanels.preview(path1(), path2());
         follower.update();
         RobotPanels.follower(follower);
 
@@ -142,11 +136,6 @@ public class RedNoGarShootParkRMid extends LinearOpMode {
     }
 
     public Path path2() {
-        return Paths.curve(point2Start, point2Control1, point2Control2, point2Control3, point2)
-                .linear(point2Start, point2);
-    }
-
-    public Path path3() {
-        return Paths.curve(point3Start, point3Control1, point3).linear(point3Start, point3);
+        return Paths.curve(point2Start, point2Control1, point2).linear(point2Start, point2);
     }
 }

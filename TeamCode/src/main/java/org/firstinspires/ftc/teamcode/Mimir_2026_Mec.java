@@ -18,6 +18,8 @@ import org.firstinspires.ftc.teamcode.mechanisms.PositionHold;
 import org.firstinspires.ftc.teamcode.mechanisms.ShotSolution;
 import org.firstinspires.ftc.teamcode.mechanisms.ShotPlanner;
 import org.firstinspires.ftc.teamcode.mechanisms.ShotPracticeLog;
+import org.firstinspires.ftc.teamcode.mechanisms.SidewaysShotPlanner;
+import org.firstinspires.ftc.teamcode.mechanisms.PracticeMovingShotPlanner;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -33,6 +35,8 @@ public class Mimir_2026_Mec extends OpMode {
     LIMELIGHT_setup the_limelight = new LIMELIGHT_setup(); // creates a new limelight class
     private final AimAssist aimAssist = new AimAssist(the_limelight);
     private final ShotPlanner shotPlanner = new ShotPlanner(aimAssist, servos);
+    private final PracticeMovingShotPlanner movingPractice = new PracticeMovingShotPlanner(aimAssist, servos);
+    private boolean lastMovingPracticeButton;
 
 
     ledIndicator ledIndicator = new ledIndicator();
@@ -124,6 +128,7 @@ public class Mimir_2026_Mec extends OpMode {
         telemetry.addData("Shot practice", practiceMode ? "ON: manual calibration shots" : "OFF");
         telemetry.addLine("INIT D-pad Down: toggle practice controls");
         telemetry.addLine("Practice after START: Left/Right speed -/+25; Down saves sample");
+        telemetry.addLine("Tagless moving test: at CENTER, manually aim; shooter OFF; click right stick");
         positionHold.updateTracking();
         RobotPanels.pose(positionHold.getPose());
         telemetry.addData("Panels", "Ready: field, telemetry, graphs, joystick inputs and Limelight");
@@ -136,6 +141,8 @@ public class Mimir_2026_Mec extends OpMode {
     public void start() {
         the_limelight.limelight_start();
         shotPlanner.reset();
+        movingPractice.clear();
+        lastMovingPracticeButton = gamepad1.right_stick_button;
         gamepad1.stopRumble();
         shotRumbling = false;
         practiceVelocity = SHOOTER_TARGET_VELOCITY;
@@ -179,7 +186,7 @@ public class Mimir_2026_Mec extends OpMode {
         }
         lastIndexerTrigger = gamepad1.b;
         if (!shooterToggle) indexerRunning = false;
-        if (practiceMode) {
+        if (practiceMode && !movingPractice.isArmed() && !SidewaysShotPlanner.CALIBRATION.enabled) {
             int step = (gamepad1.dpad_right && !lastPracticeRight ? 1 : 0)
                     - (gamepad1.dpad_left && !lastPracticeLeft ? 1 : 0);
             practiceVelocity = limitShooterVelocity(practiceVelocity + 25.0 * step);
@@ -221,7 +228,6 @@ public class Mimir_2026_Mec extends OpMode {
             positionHold.stopHolding();
             positionHold.updateTracking();
             drive.setDriveMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            drive.main(rotX,rotY,aimAssist.getTurn(redAlliance),1.0);
         } else if (holdToggle) {
             drive.setDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             positionHold.startHolding();
@@ -230,21 +236,38 @@ public class Mimir_2026_Mec extends OpMode {
             positionHold.stopHolding();
             positionHold.updateTracking();
             drive.setDriveMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            drive.main(rotX, rotY, rotation, rotationMultiplier);
         }
         servos.servos_move(intakeToggle, intakeSpeed);
+        if (practiceMode && gamepad1.right_stick_button && !lastMovingPracticeButton) {
+            if (movingPractice.isArmed()) {
+                movingPractice.clear();
+                indexerRunning = false;
+            } else if (!aimToggle && !shooterToggle && !holdToggle && allianceKnown) {
+                movingPractice.capture(positionHold.getPose(), positionHold.getVelocity());
+                if (movingPractice.isArmed()) practiceVelocity = PracticeMovingShotPlanner.TARGET_SPEED;
+            }
+        }
+        lastMovingPracticeButton = gamepad1.right_stick_button;
         double requestedVelocity = practiceMode ? practiceVelocity : SHOOTER_TARGET_VELOCITY;
-        if (aiming) requestedVelocity = shotPlanner.requestedVelocity(
+        requestedVelocity = shotPlanner.requestedVelocity(
                 redAlliance, requestedVelocity, practiceMode);
+        if (practiceMode && movingPractice.isArmed()) requestedVelocity = PracticeMovingShotPlanner.TARGET_SPEED;
         requestedVelocity = limitShooterVelocity(requestedVelocity);
         servos.shooterthingy(shooterToggle, requestedVelocity);
+        boolean movingTest = practiceMode && movingPractice.isArmed();
+        boolean sidewaysMode = SidewaysShotPlanner.CALIBRATION.enabled || movingTest;
+        if (!aiming) shotPlanner.resetSideways();
+        if (!aiming) movingPractice.resetMotion();
+        ShotSolution shot = new ShotSolution(0, requestedVelocity, false, "Alliance not set");
         boolean smartShotReady = false;
         if (allianceKnown) {
-            ShotSolution shot = shotPlanner.evaluate(
-                    redAlliance, positionHold.getVelocity());
+            shot = aiming ? shotPlanner.evaluate(redAlliance, positionHold.getPose(), positionHold.getVelocity())
+                    : shotPlanner.evaluate(redAlliance, positionHold.getVelocity());
+            if (movingTest && aiming) shot = movingPractice.evaluate(
+                    positionHold.getPose(), positionHold.getVelocity());
             telemetry.addData("shot status",shot.status);
             telemetry.addData("shot ready",shot.ready);
-            smartShotReady = shot.ready && !practiceMode;
+            smartShotReady = shot.ready && (!practiceMode || sidewaysMode);
             telemetry.addData("speed (in/s)",Math.hypot(
                     positionHold.getVelocity().vx,
                     positionHold.getVelocity().vy));
@@ -254,6 +277,10 @@ public class Mimir_2026_Mec extends OpMode {
         } else {
             telemetry.addData("shot status", "Alliance not set");
         }
+
+        // Steering, feed permission and rumble consume the SAME solution.
+        if (aiming) drive.main(rotX, rotY, aimAssist.trackingTurn(shot.turn, indexerRunning), 1.0);
+        else if (!holdToggle) drive.main(rotX, rotY, rotation, rotationMultiplier);
 
         boolean shouldRumble = aiming && smartShotReady;
 
@@ -267,10 +294,10 @@ public class Mimir_2026_Mec extends OpMode {
             shotRumbling = shouldRumble;
         }
         // Holding X overrides the forward toggle; release to restore its state.
-        boolean practiceFeedReady = practiceMode && aiming
+        boolean practiceFeedReady = practiceMode && !movingTest && aiming
                 && shotPlanner.practiceFeedReady(redAlliance);
-        boolean feedAllowed = indexerRunning && shooterToggle
-                && (!aimToggle || smartShotReady || practiceFeedReady);
+        boolean feedAllowed = indexerRunning && shooterToggle && servos.isShooterReady()
+                && (movingTest ? aiming && smartShotReady : (!aimToggle || smartShotReady || practiceFeedReady));
 
         servos.indexerthingy(feedAllowed || gamepad1.x,
                 gamepad1.x ? -indexerSpeed : indexerSpeed);
@@ -291,7 +318,7 @@ public class Mimir_2026_Mec extends OpMode {
             telemetry.addData("Sample status", shotLog.getStatus());
             telemetry.addData("Sample file", shotLog.getPath());
         }
-        telemetry.addData("Moving shots", "Not enabled: need flight time and frame validation");
+        telemetry.addData("Sideways profile", sidewaysMode ? shot.status : "Disabled: measurements needed");
 
         if (resetYaw) {
             the_imu.resetYaw();
@@ -324,6 +351,8 @@ public class Mimir_2026_Mec extends OpMode {
         telemetry.addData("Indexer request", indexerRunning ? "ON" : "OFF");
         telemetry.addData("Indexer", gamepad1.x ? "Reverse" : feedAllowed ? "Feeding" : indexerRunning ? "Waiting" : "Off");
         telemetry.addData("Battery (V)", batteryVoltage());
+        telemetry.addData("Flywheel feed check", servos.getShooterFeedStatus());
+        telemetry.addData("Flywheel speed drops", servos.getFlywheelSpeedDrops());
         telemetry.addData("Heading (Degrees)" , the_imu.getHeading() * (180/Math.PI)); //shows the heading of the robot
         telemetry.addData("Loop Frequency (Hz)", hz);
         telemetry.addData("Camera status", the_limelight.getStatus());
@@ -343,12 +372,45 @@ public class Mimir_2026_Mec extends OpMode {
             telemetry.addData("Raw aim TY (deg)", aimAssist.getRawAimError(redAlliance));
             telemetry.addData("Camera-tag range (in)",
                     aimAssist.getTagRangeInches(redAlliance));
+            telemetry.addData("Range status", aimAssist.getTagRangeReading(redAlliance).status);
             telemetry.addData("Aim correction",
                     aimAssist.getTurn(redAlliance));
         } else {
             telemetry.addData("Aim assist", "No fresh alliance tag");
         }
 
+        if (practiceMode) {
+            // A compact DS screen keeps the sample result and essential measurements visible.
+            telemetry.clear();
+            telemetry.addData("Moving test", movingPractice.referenceStatus());
+            telemetry.addData("Moving test status", movingTest ? shot.status : "OFF: Y + aim OFF; click right stick at CENTER");
+            telemetry.addData("FEED CHECK", !indexerRunning ? "Press B to request feeding"
+                    : !shooterToggle ? "Press Y: shooter ON"
+                    : movingTest && !aiming ? "D-pad Up: auto aim ON"
+                    : !servos.isShooterReady() ? servos.getShooterFeedStatus()
+                    : feedAllowed ? "INDEXING" : shot.status);
+            telemetry.addData("Sample status", shotLog.getStatus());
+            telemetry.addData("Saved samples", shotLog.getSamples());
+            telemetry.addData("Alliance / aim", (allianceKnown ? (redAlliance ? "RED" : "BLUE") : "NOT SET")
+                    + " / " + (aiming ? "ON" : "OFF"));
+            telemetry.addData("Selected aim tag", allianceKnown ? aimAssist.getAimTagId(redAlliance) : -1);
+            AimAssist.RangeReading rangeReading = aimAssist.getTagRangeReading(redAlliance);
+            telemetry.addData("Camera-tag range (in)", allianceKnown ? rangeReading.inches : Double.NaN);
+            telemetry.addData("Range status", allianceKnown ? rangeReading.status : "Select alliance during INIT");
+            telemetry.addData("Camera status", the_limelight.getStatus());
+            telemetry.addData("Target / actual ticks/s", "%.0f / %.0f", shooterToggle ? requestedVelocity : 0, shooterVelocity);
+            telemetry.addData("Flywheel feed check", servos.getShooterFeedStatus());
+            telemetry.addData("Flywheel speed drops", servos.getFlywheelSpeedDrops());
+            telemetry.addData("Aim error / lead deg", "%.2f / %.2f", shot.aimErrorDegrees, shot.leadDegrees);
+            telemetry.addData("Robot vx / vy / turn", "%.2f / %.2f / %.2f deg/s", positionHold.getVelocity().vx,
+                    positionHold.getVelocity().vy, Math.toDegrees(positionHold.getVelocity().omega));
+            telemetry.addData("Heading (deg)", Math.toDegrees(positionHold.getPose().heading()));
+            telemetry.addData("Raw TY (deg)", allianceKnown ? aimAssist.getRawAimError(redAlliance) : Double.NaN);
+            telemetry.addData("Shot status", shot.status);
+            telemetry.addData("Indexer", gamepad1.x ? "REVERSE" : feedAllowed ? "FEEDING" : indexerRunning ? "WAITING" : "OFF");
+            telemetry.addData("Battery (V)", batteryVoltage());
+            telemetry.addData("Controls", sidewaysMode ? "Fixed speed; Down saves" : "L/R speed; Down saves; Up aim");
+        }
         telemetry.update();
 
         if (turboTrigger && !lastTurboTrigger) {
@@ -379,6 +441,7 @@ public class Mimir_2026_Mec extends OpMode {
 
     @Override
     public void stop() {
+        movingPractice.clear();
         positionHold.stopHolding();
         the_limelight.limelight_stop();
         shooterToggle = false;

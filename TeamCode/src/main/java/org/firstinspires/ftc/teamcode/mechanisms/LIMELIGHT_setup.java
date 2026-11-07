@@ -102,9 +102,11 @@ public class LIMELIGHT_setup {
         }
 
         // Prefer the measured target if it is present; do not alter auto's hasTag().
+        int preferredId = SidewaysShotPlanner.CALIBRATION.enabled
+                ? SidewaysShotPlanner.CALIBRATION.tagId : ShotCalibration.CALIBRATED_TAG_ID;
         for (LLResultTypes.FiducialResult tag : llResult.getFiducialResults()) {
             int id = tag.getFiducialId();
-            if (id == ShotCalibration.CALIBRATED_TAG_ID
+            if (id == preferredId
                     && (redAlliance ? id >= 30 && id <= 37 : id >= 38 && id <= 45)) {
                 return tag;
             }

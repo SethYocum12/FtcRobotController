@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.mechanisms;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.pedropathing.math.Velocity;
+import com.pedropathing.math.Pose;
 
 public class ShotPlanner {
 
@@ -12,17 +13,30 @@ public class ShotPlanner {
     private final ElapsedTime stillTimer = new ElapsedTime();
     private boolean wasStationary = false;
     private boolean settled;
+    private final SidewaysShotPlanner sideways;
 
     public ShotPlanner(AimAssist aim, servos_and_shooters shooter) {
 
         this.aim = aim;
         this.shooter = shooter;
+        this.sideways = new SidewaysShotPlanner(aim, shooter);
     }
     public void reset() {
         wasStationary = false;
         settled = false;
         stillTimer.reset();
+        sideways.reset();
     }
+
+    public ShotSolution evaluate(boolean redAlliance, Pose pose, Velocity velocity) {
+        if (SidewaysShotPlanner.CALIBRATION.enabled) {
+            settled = false;
+            return sideways.evaluate(redAlliance, pose, velocity);
+        }
+        return evaluate(redAlliance, velocity);
+    }
+
+    public void resetSideways() { sideways.reset(); }
 
     private boolean stationaryShotReady(Velocity velocity) {
         boolean stationary = velocity != null &&
@@ -62,7 +76,7 @@ public class ShotPlanner {
         } else if (!aim.isAligned(redAlliance)) {
             status = "Aiming";
         } else if (!shooter.isShooterReady()) {
-            status = "Waiting for 97% flywheel speed";
+            status = "Waiting for stable flywheel speed / recovery";
         } else if (!settled) {
             status = "Waiting to settle for 2 seconds";
         } else {
@@ -93,14 +107,15 @@ public class ShotPlanner {
     }
 
     public double requestedVelocity(boolean redAlliance, double manualVelocity, boolean practice) {
-        if (practice || !aim.hasAimTarget(redAlliance) || calibrationProblem(redAlliance) != null)
-            return manualVelocity;
-        return ShotCalibration.velocityFor(aim.getTagRangeInches(redAlliance));
+        // Distance-based RPM adjustment is deferred. The sideways profile uses ONE speed.
+        SidewaysShotPlanner.Calibration c = SidewaysShotPlanner.CALIBRATION;
+        return c.enabled && Double.isFinite(c.fixedVelocity) && c.fixedVelocity > 0
+                ? c.fixedVelocity : manualVelocity;
     }
 
     /** Practice permission measures stationary shots before calibration exists. */
     public boolean practiceFeedReady(boolean redAlliance) {
-        return settled && aim.hasAimTarget(redAlliance)
+        return !SidewaysShotPlanner.CALIBRATION.enabled && settled && aim.hasAimTarget(redAlliance)
                 && aim.isAligned(redAlliance) && shooter.isShooterReady();
     }
 

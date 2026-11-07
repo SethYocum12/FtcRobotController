@@ -19,8 +19,8 @@ import org.firstinspires.ftc.teamcode.mechanisms.LIMELIGHT_setup;
 import org.firstinspires.ftc.teamcode.mechanisms.AutonomousShooting;
 import org.firstinspires.ftc.teamcode.mechanisms.servos_and_shooters;
 import com.qualcomm.robotcore.util.ElapsedTime;
-@Autonomous(name = "Red shoot Gar | parkR (1) ", group = "Autonomous")
-public class RedGarShootParkR extends LinearOpMode {
+@Autonomous(name = "Red No Gar shoot | parkL (1) ", group = "Autonomous")
+public class RedNoGarShootParkLFORNOW extends LinearOpMode {
 
     private Follower follower;
     private final servos_and_shooters mechanisms = new servos_and_shooters();
@@ -35,11 +35,12 @@ public class RedGarShootParkR extends LinearOpMode {
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
     // Front toward the starting wall; rear shooter toward the field.
-    private final Pose start = poseFactory.of(55.2543, 7.9512, 270);
-    private final Pose path1 = poseFactory.of(55.348, 11, 270);
-    private final Pose point2Start = poseFactory.of(55.348, 11, 270);
-    private final Pose point2 = poseFactory.of(13.6482, 90.0607, 0);
-    private final Pose point2Control1 = poseFactory.of(7.3403, 48.2372, 0);
+    private final Pose start = poseFactory.of(62.4163, 133.5944, 90);
+    private final Pose path1 = poseFactory.of(57.3912, 130.5, 90);
+    private final Pose path1Control1 = poseFactory.of(71.7645, 122.0174, 0);
+    private final Pose point2Start = poseFactory.of(57.3912, 130.5, 90);
+    private final Pose point2 = poseFactory.of(14.3288, 121.1823, 0);
+    private final Pose point2Control1 = poseFactory.of(36.655, 105.747, 0);
 
     // All shooting autos share the tag trigger and the 20-second departure rule.
     public Command autoRoutine() {
@@ -132,7 +133,7 @@ public class RedGarShootParkR extends LinearOpMode {
     }
 
     public Path path1() {
-        return Paths.line(start, path1).linear(start, path1);
+        return Paths.curve(start, path1Control1, path1).linear(start, path1);
     }
 
     public Path path2() {

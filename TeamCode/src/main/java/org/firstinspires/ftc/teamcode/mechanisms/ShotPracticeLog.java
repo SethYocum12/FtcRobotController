@@ -19,11 +19,11 @@ public class ShotPracticeLog {
     public void record(boolean allianceKnown, boolean red, AimAssist aim,
                        double target, double actual, double batteryVolts,
                        Pose pose, Velocity velocity, boolean aiming, boolean feeding) {
-        if (!allianceKnown || !aim.hasAimTarget(red)
-                || !Double.isFinite(aim.getTagRangeInches(red))) {
-            status = "Not saved: need alliance and fresh tag with range";
-            return;
-        }
+        boolean fresh = allianceKnown && aim.hasAimTarget(red);
+        int tagId = fresh ? aim.getAimTagId(red) : -1;
+        double range = fresh ? aim.getTagRangeInches(red) : Double.NaN;
+        double rawError = fresh ? aim.getRawAimError(red) : Double.NaN;
+        double aimError = fresh ? aim.getAimError(red) : Double.NaN;
         try {
             if (file == null) {
                 File directory = new File(AppUtil.FIRST_FOLDER, "shot-practice");
@@ -40,14 +40,15 @@ public class ShotPracticeLog {
                         + "pose_x_in,pose_y_in,heading_rad,vx_in_s,vy_in_s,omega_rad_s,aiming,feeding\n");
                 writer.write(String.format(Locale.US,
                         "%d,%d,%s,%d,%.4f,%.4f,%.4f,%.2f,%.2f,%.3f,%.4f,%.4f,%.5f,%.4f,%.4f,%.5f,%b,%b%n",
-                        samples + 1, System.currentTimeMillis(), red ? "RED" : "BLUE",
-                        aim.getAimTagId(red), aim.getTagRangeInches(red), aim.getRawAimError(red),
-                        aim.getAimError(red), target, actual, batteryVolts,
+                        samples + 1, System.currentTimeMillis(), allianceKnown ? (red ? "RED" : "BLUE") : "UNKNOWN",
+                        tagId, range, rawError,
+                        aimError, target, actual, batteryVolts,
                         pose.x(), pose.y(), pose.heading(), velocity.vx, velocity.vy, velocity.omega,
                         aiming, feeding));
             }
             samples++;
-            status = "Saved sample " + samples;
+            status = "Saved sample " + samples
+                    + (!fresh ? " (no tag; readings only)" : !Double.isFinite(range) ? " (range missing; readings only)" : "");
         } catch (IOException | SecurityException error) {
             status = "Save failed: " + error.getMessage();
         }
