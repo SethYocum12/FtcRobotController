@@ -1,60 +1,21 @@
 # Practice instructions — do one step at a time
 
-## First moving-shot test — current home board
+## AprilTag auto-rotate and manual feeding
 
-This experimental mode does not use AprilTags. At CENTER, manually point the
-rear shooter at the board and click the right stick while the robot is stopped.
-That captures the current Pinpoint pose and heading as a fixed target reference.
-The code estimates the target about 44 inches behind the robot center using
-the measured home setup. As you move sideways, it recalculates the heading to
-that same target every loop, including a provisional sideways-motion lead. The
-camera may show no tag; that will not block aiming or feeding in this test.
-It uses fixed 1300 ticks/s and provisional 0.46-second airtime. This is a home
-practice test, not field calibration.
-The existing full-field sideways profile remains separate and disabled.
+This follows the behavior in [Brogan's mecanum AprilTag auto-rotate video](https://www.youtube.com/watch?v=dATlviyccY0): click the **right stick** to
+toggle rotation toward the visible alliance goal tag while your drive stick
+still controls translation and strafing. D-pad Up is a second toggle. Click
+either again to turn auto-rotate off. When no alliance tag is visible, the
+robot lets the left stick turn manually. The Limelight is rear-facing, so the
+code flips camera TX to match the robot's turn direction.
 
-1. Upload the updated app using Android Studio Run.
-2. Select Mimir 2026 Mec. During INIT, set BLUE (D-pad Right) and practice ON
-   (D-pad Down toggles it). Press START with the robot at the same CENTER spot.
-3. Keep shooter and auto aim OFF. Manually point the rear shooter exactly as
-   for the successful CENTER shot. Load only one ball for this first test.
-4. Click the RIGHT stick once. DS must say **CENTER set** under Moving test.
-   If it does not, read the message there; do not proceed as if it captured.
-5. Press D-pad Up for auto aim, then Y for the shooter. Speed is fixed at 1300.
-6. Creep sideways a few inches, then press B once to request feeding. Feeding
-   waits for odometry aim, flywheel recovery and steady motion. Rumble means ready.
-   Stay within 12 inches of CENTER, under 15 in/s; keep forward/back drift under
-   3 inches and forward/back speed under 3 in/s. These are experimental test
-   limits, not a newly verified scoring range. Feeding pauses near a boundary,
-   during abrupt acceleration, when turning over 30 deg/s, or when the flywheel
-   is recovering. Aim tolerance is 3 degrees;
-   the motion-settle check is 0.08 seconds. Flywheel recovery still requires
-   its separate stable-speed check. Look at **FEED CHECK** at the top of the
-   DS screen for the exact blocker; there is no 20-second waiting timer.
-7. Press B again to cancel feeding and Y to turn the shooter off. Click the
-   right stick again to cancel the moving reference, or press STOP.
-
-Translation remains on your drive stick. Auto aim controls rotation. Turning
-auto aim OFF while this test is armed also blocks forward feeding; X remains
-manual reverse. Re-capture CENTER after every restart. No new tape measurements
-or three-position CSV set is needed to initialize this limited test.
-
-The boundary's quarter-second look-ahead is a test setting, not a
-measured ball-release delay. The mechanism has no ball-exit sensor; a ball
-already touching the flywheel cannot be recalled by stopping the indexer.
-
-CURRENT GOAL: sideways movement + auto aim + smart feeding at ONE fixed shooter speed.
-Automatic speed changes with distance are a later stretch goal.
-
-For the current CENTER practice test above, you can drive left/right along the
-marked line while the robot continuously turns toward the target point captured
-at CENTER. It also adds provisional lead for sideways movement. AprilTags are
-not part of this test. The older full-field calibration profile below remains
-disabled and is separate. Fixed speed stays at 1300 ticks/s; distance-based RPM
-changes are deferred.
-
-A straight sideways line does change the actual distance to the basket a little.
-We will use only the section where the SAME shooter speed scores reliably.
+It uses the BIOBUZZ alliance cell tags: red IDs 30–37 and blue IDs 38–45.
+When multiple same-alliance tags are visible, it keeps using the same tag while
+that tag remains visible. **Y** toggles the shooter, **B** manually toggles the
+indexer, and holding **X** reverses it. B does not wait for tag visibility,
+alignment, or flywheel recovery. Start with the wheels clear and B off; for
+shooting, begin with one ball and be ready to stop or reverse the indexer
+yourself.
 
 
 ## Read this first if the robot turns or you cannot find the saved number
@@ -372,7 +333,7 @@ need to calculate these during practice. Settings live in
 - Basket aim-point X/Y, the sideways line's position/direction, and its usable
   left/right limits in the SAME Pedro coordinate frame as the robot pose.
 - Shooter exit forward/left offsets from robot center.
-- Successful stationary raw TY, and the tested sign relating TY to a CCW turn.
+- Successful stationary raw TX, and the tested sign relating TX to a CCW turn.
 - Verification that the camera gives valid range, and that the aim correction
   works from CENTER, LEFT and RIGHT within this small corridor.
 
@@ -389,16 +350,12 @@ measured performance claims. Change them only after testing.
 
 After the settings are populated, `geometryAndTimingVerified` and `enabled`
 remain false until their checks pass. There are no invented flight times or
-geometry values in the shipped profile. If enabled with missing data, turning
-and smart feeding are blocked with an explanation. Practice feeding cannot
-bypass those checks when the sideways profile is enabled. X remains manual reverse.
-
-Once enabled and validated: D-pad Up toggles aim, the drive stick moves you,
-rotation stick is ignored during aim, B toggles the feed request, and continuous
-rumble indicates readiness. Loss of readiness pauses feeding. Turning Y off
-cancels the B request. The normal manual controls work with auto aim off.
-In the enabled profile the flywheel uses the one calibrated speed; practice
-Left/Right speed changes are locked until the profile is disabled for retuning.
+geometry values in the shipped profile. The current right-stick auto-rotate
+tracks the selected alliance AprilTag while driving. B manually toggles the
+indexer in TeleOp regardless of range, aim readiness, or flywheel recovery.
+X reverses.
+Autonomous shooting remains separately controlled by its scripted tag and speed
+rules because there is no driver B input during auto.
 
 ## If the range still says NaN after uploading the latest code
 
@@ -420,13 +377,13 @@ https://docs.limelightvision.io/docs/docs-limelight/apis/json-results-specificat
   Limelight interface when you can access it. Tell me the exact message or send
   a picture. This message alone does not prove which setting is wrong.
 
-Even with missing range, Down now saves a diagnostic snapshot for later review.
-Moving-shot feeding still requires a valid distance and completed calibration.
+Even with missing range, Down saves a diagnostic snapshot for later review.
+Missing range does not prevent manual TeleOp feeding with B.
 
 ## If the first shot is good but later shots go low
 
-The new feed check applies to TeleOp (including manual aim) and shared autos.
-The requested shooter speed is unchanged.
+The manual TeleOp indexer no longer checks flywheel recovery before feeding.
+Autonomous scripts still check shooter speed and pause their scripted feed.
 
 1. Wait for actual flywheel speed to reach 97–103% of target and stay there for
    0.25 seconds. Then the indexer is allowed to feed if the other aim checks pass.
