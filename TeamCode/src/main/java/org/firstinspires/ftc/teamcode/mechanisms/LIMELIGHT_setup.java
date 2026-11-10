@@ -6,6 +6,9 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
 
+import java.util.Collections;
+import java.util.List;
+
 /** Shared Limelight access for teleop and autonomous. Call main() each loop. */
 public class LIMELIGHT_setup {
     public static final int APRILTAG_PIPELINE = 8;
@@ -109,6 +112,12 @@ public class LIMELIGHT_setup {
             if (tag.getFiducialId() == expectedId) return true;
         }
         return false;
+    }
+
+    /** Same-frame per-tag measurements; stale detections are never returned. */
+    public List<LLResultTypes.FiducialResult> getFreshFiducials() {
+        return hasFreshTag() ? Collections.unmodifiableList(llResult.getFiducialResults())
+                : Collections.emptyList();
     }
 
     public String getTagIds() {

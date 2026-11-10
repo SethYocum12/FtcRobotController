@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.math.Velocity;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,12 +11,23 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.dashboard.RobotPanels;
 import org.firstinspires.ftc.teamcode.mechanisms.AllianceMemory;
-import org.firstinspires.ftc.teamcode.mechanisms.AutoAimTag;
 import org.firstinspires.ftc.teamcode.mechanisms.IMU_setup;
+import org.firstinspires.ftc.teamcode.mechanisms.LIMELIGHT_setup;
 import org.firstinspires.ftc.teamcode.mechanisms.PositionHold;
+import org.firstinspires.ftc.teamcode.mechanisms.StationaryShotCue;
+import org.firstinspires.ftc.teamcode.mechanisms.StationaryShotModel;
+import org.firstinspires.ftc.teamcode.mechanisms.ShotMathPracticeLog;
+import org.firstinspires.ftc.teamcode.mechanisms.ShotTrajectoryMath;
 import org.firstinspires.ftc.teamcode.mechanisms.ledIndicator;
 import org.firstinspires.ftc.teamcode.mechanisms.mec_wheels;
 import org.firstinspires.ftc.teamcode.mechanisms.servos_and_shooters;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
+import java.util.ArrayList;
 
 @TeleOp
 @Configurable
@@ -22,7 +35,10 @@ public class Mimir_2026_Mec extends OpMode {
 
     private final mec_wheels drive = new mec_wheels();
     private final PositionHold positionHold = new PositionHold();
-    private final AutoAimTag autoAim = new AutoAimTag();
+    private final LIMELIGHT_setup vision = new LIMELIGHT_setup();
+    private final StationaryShotCue shotCue = new StationaryShotCue();
+    private final StationaryShotModel shotModel = new StationaryShotModel();
+    private final ShotMathPracticeLog shotPractice = new ShotMathPracticeLog();
     private final IMU_setup imu = new IMU_setup();
     private final servos_and_shooters servos = new servos_and_shooters();
     private final ledIndicator led = new ledIndicator();
@@ -56,16 +72,25 @@ public class Mimir_2026_Mec extends OpMode {
     private boolean redAlliance;
     private boolean allianceKnown;
     private double practiceVelocity;
+    private boolean lastConfirmShotButton;
+    private boolean lastPracticeMarkerButton;
+    private boolean cueRumbling;
+    private double lastRumbleSeconds = Double.NEGATIVE_INFINITY;
+    private double clearCueSince = Double.NaN;
+    private boolean clearCueHandled;
 
     // Manually adjustable target used by the flywheel.
-    public static volatile double SHOOTER_TARGET_VELOCITY = 1278.0;
+    public static volatile double SHOOTER_TARGET_VELOCITY = 1325.0;
 
     @Override
     public void init() {
         RobotPanels.attach(this);
         loadAlliance();
         positionHold.init(hardwareMap);
-        autoAim.init(hardwareMap, this::getRuntime);
+        vision.init(hardwareMap);
+        shotCue.load(AppUtil.getInstance().getSettingsFile("mimir-biobuzz-hive-shot-cue.properties"));
+        shotModel.load(AppUtil.getInstance().getSettingsFile("mimir-stationary-shot-math.properties"));
+        gamepad1.stopRumble();
         drive.init(hardwareMap);
         servos.init(hardwareMap);
         imu.init(hardwareMap);
@@ -74,6 +99,18 @@ public class Mimir_2026_Mec extends OpMode {
 
     @Override
     public void init_loop() {
+        // Explicitly clear only shot references when camera/shooter setup changes.
+        if (gamepad1.x && gamepad1.y) {
+            if (!Double.isFinite(clearCueSince)) clearCueSince = getRuntime();
+            if (!clearCueHandled && getRuntime() - clearCueSince >= 1.0) {
+                shotCue.clear();
+                shotModel.invalidate();
+                clearCueHandled = true;
+            }
+        } else {
+            clearCueSince = Double.NaN;
+            clearCueHandled = false;
+        }
         if (gamepad1.dpad_down && !lastPracticeButton) {
             practiceMode = !practiceMode;
         }
@@ -90,9 +127,12 @@ public class Mimir_2026_Mec extends OpMode {
 
         telemetry.addData("Alliance", allianceKnown ? (redAlliance ? "RED" : "BLUE") : "NOT SET");
         telemetry.addLine("INIT D-pad Left = red; D-pad Right = blue");
-        telemetry.addLine("Hold Left Trigger after START for AprilTag auto alignment");
+        telemetry.addLine("Shot rumble is automatic; D-pad Up confirms a successful shooting spot");
+        telemetry.addData("Saved shots", shotCue.getSaveStatus());
+        telemetry.addData("Shot math", shotModel.getStatus());
+        telemetry.addLine("INIT Square + Triangle for 1 second clears shot calibration");
         telemetry.addData("Shooter speed practice", practiceMode ? "ON" : "OFF");
-        telemetry.addLine("INIT D-pad Down toggles practice speed control");
+        telemetry.addLine("INIT Down: practice recording; after START Down labels each position");
         positionHold.updateTracking();
         RobotPanels.pose(positionHold.getPose());
         telemetry.addData("Panels", "Ready");
@@ -102,8 +142,15 @@ public class Mimir_2026_Mec extends OpMode {
     @Override
     public void start() {
         resetRuntime();
-        autoAim.start();
+        vision.limelight_start();
+        shotCue.reset();
+        cueRumbling = false;
+        gamepad1.stopRumble();
+        lastRumbleSeconds = Double.NEGATIVE_INFINITY;
+        lastConfirmShotButton = gamepad1.dpad_up;
+        lastPracticeMarkerButton = gamepad1.dpad_down;
         practiceVelocity = SHOOTER_TARGET_VELOCITY;
+        if (practiceMode) shotPractice.start(AppUtil.getInstance().getSettingsFile("mimir-shot-math"));
         lastPracticeLeft = gamepad1.dpad_left;
         lastPracticeRight = gamepad1.dpad_right;
         lastIntakeButton = gamepad1.a;
@@ -153,7 +200,6 @@ public class Mimir_2026_Mec extends OpMode {
         lastTurboButton = gamepad1.right_bumper;
         if (gamepad1.left_bumper && !lastHoldButton) holdToggle = !holdToggle;
         lastHoldButton = gamepad1.left_bumper;
-        if (gamepad1.left_trigger > 0.3) holdToggle = false;
 
         drive.intakeMode(intakeToggle, INTAKE_SPEED);
         drive.turboMode(turboToggle);
@@ -176,9 +222,7 @@ public class Mimir_2026_Mec extends OpMode {
                 practiceMode ? practiceVelocity : SHOOTER_TARGET_VELOCITY);
         servos.shooterthingy(shooterToggle, requestedVelocity);
 
-        double driveRotation = autoAim.getTurn(redAlliance, allianceKnown, rotation, gamepad1);
-        if (!holdToggle) drive.main(fieldX, fieldY, driveRotation, ROTATION_MULTIPLIER);
-        autoAim.tune(gamepad2);
+        if (!holdToggle) drive.main(fieldX, fieldY, rotation, ROTATION_MULTIPLIER);
 
         boolean feedAllowed = indexerRunning && shooterToggle;
         servos.indexerthingy(feedAllowed || gamepad1.x,
@@ -187,17 +231,72 @@ public class Mimir_2026_Mec extends OpMode {
         if (gamepad1.back) imu.resetYaw();
 
         double shooterVelocity = servos.getShooterVelocity();
+        vision.main();
+        StationaryShotCue.Reading cueReading = shotCueReading(requestedVelocity, driverMoving,
+                feedAllowed || gamepad1.x);
+        boolean savedReady = shotCue.update(cueReading);
+        boolean predictedFit = shotModel.update(cueReading);
+        boolean cueReady = shotModel.isCalibrated()
+                ? shotCue.isOperatingReady() && predictedFit : savedReady;
+        String cueStatus = shotModel.isCalibrated()
+                ? (shotCue.isOperatingReady() ? shotModel.getStatus() : shotCue.getOperatingStatus())
+                : shotCue.getStatus();
+        if (practiceMode && gamepad1.dpad_down && !lastPracticeMarkerButton) {
+            shotPractice.markPosition(cueReading);
+        }
+        lastPracticeMarkerButton = gamepad1.dpad_down;
+        if (gamepad1.dpad_up && !lastConfirmShotButton) {
+            if (shotCue.confirmScoringPosition(cueReading)) shotPractice.markConfirmed(cueReading);
+        }
+        lastConfirmShotButton = gamepad1.dpad_up;
+        shotPractice.sample(cueReading);
+        double rumbleSeconds = getRuntime();
+        boolean cueFresh = rumbleSeconds >= cueReading.seconds
+                && rumbleSeconds - cueReading.seconds <= 0.25;
+        updateShotRumble(cueReady && cueFresh, rumbleSeconds);
+
         led.indicate(shooterToggle, shooterVelocity, requestedVelocity);
         RobotPanels.shooter(shooterToggle, shooterVelocity, requestedVelocity);
         RobotPanels.pose(positionHold.getPose());
 
+        if (practiceMode) {
+            int posedTags = 0;
+            for (StationaryShotCue.Target target : cueReading.targets) {
+                if (target.hasCameraPose()) posedTags++;
+            }
+            telemetry.addData("PRACTICE POSITION", shotPractice.getBatch());
+            telemetry.addData("3D DATA", posedTags > 0 ? "READY: " + posedTags + " tags" : "WAIT: fresh full 3D tag data missing");
+            telemetry.addData("FLYWHEEL", servos.getShooterFeedStatus());
+            telemetry.addData("Test target / actual ticks/s", "%.0f / %.0f", requestedVelocity, shooterVelocity);
+            telemetry.addData("Recording", shotPractice.getStatus());
+            telemetry.addData("CSV file", shotPractice.getPath());
+            telemetry.addLine("After START: Down labels the next position; film and count your shot set");
+        }
+        telemetry.addData("SHOT CUE", cueStatus);
+        telemetry.addData("Cue source", shotModel.isCalibrated() ? "Trajectory prediction" : "Saved spot; prediction not trained");
+        telemetry.addData("Shot math", shotModel.getStatus());
+        ShotTrajectoryMath.Prediction prediction = shotModel.getPrediction();
+        if (prediction != null) {
+            telemetry.addData("Predicted time / clearance", "%.3f s / %.2f in",
+                    prediction.flightSeconds, prediction.clearanceInches);
+        }
+        telemetry.addData("Saved shots", shotCue.getSaveStatus());
+        telemetry.addData("Saved tag references", shotCue.getReferenceCount());
+        telemetry.addData("Vision", vision.getStatus());
+        if (!cueReading.targets.isEmpty()) {
+            StationaryShotCue.Target target = cueReading.targets.get(0);
+            telemetry.addData("Tag / TX / TY / range (in)", "%d / %.2f / %.2f / %.1f",
+                    target.id, target.tx, target.ty, target.rangeInches);
+        }
+        telemetry.addData("Motion (in/s, deg/s)", "%.2f / %.2f",
+                Math.hypot(cueReading.vx, cueReading.vy), Math.toDegrees(cueReading.omega));
+        telemetry.addLine("Automatic shot cue; Up confirms a spot AFTER scoring, without moving");
         telemetry.addData("Alliance", allianceKnown ? (redAlliance ? "RED" : "BLUE") : "NOT SET");
         telemetry.addData("Practice speed", practiceMode ? practiceVelocity : "OFF");
         telemetry.addData("Drive strafe", xAxis);
         telemetry.addData("Drive forward", yAxis);
         telemetry.addData("Drive turn", rotation);
-        autoAim.addTelemetry(telemetry);
-        if (!allianceKnown) telemetry.addLine("Set alliance in INIT before enabling auto aim");
+        if (!allianceKnown) telemetry.addLine("Set alliance in INIT for the shot cue");
         telemetry.addData("Position hold", holdToggle);
         telemetry.addData("Shooter", shooterToggle ? "ON" : "OFF");
         telemetry.addData("Shooter target / actual (ticks/s)", "%.0f / %.0f",
@@ -213,6 +312,78 @@ public class Mimir_2026_Mec extends OpMode {
             telemetry.addLine("B toggles indexer; X reverses; Y toggles shooter");
         }
         telemetry.update();
+    }
+
+    private StationaryShotCue.Reading shotCueReading(double requestedVelocity,
+                                                     boolean driverMoving, boolean feeding) {
+        StationaryShotCue.Reading reading = new StationaryShotCue.Reading();
+        reading.seconds = getRuntime();
+        reading.allianceKnown = allianceKnown;
+        reading.redAlliance = redAlliance;
+        reading.driveRequested = driverMoving;
+        reading.shooterOn = shooterToggle;
+        reading.targetVelocity = requestedVelocity;
+        reading.actualVelocity = servos.getShooterVelocity();
+        reading.batteryVoltage = batteryVoltage();
+        reading.visionAgeMs = vision.getResultAgeMs();
+        reading.flywheelReady = servos.isShooterReady();
+        reading.feeding = feeding;
+        reading.reversing = gamepad1.x;
+        reading.robotX = positionHold.getPose().x();
+        reading.robotY = positionHold.getPose().y();
+        reading.robotHeading = positionHold.getPose().heading();
+        Velocity velocity = positionHold.getVelocity();
+        if (velocity != null) {
+            reading.vx = velocity.vx;
+            reading.vy = velocity.vy;
+            reading.omega = velocity.omega;
+        }
+        reading.targets = new ArrayList<>();
+        for (LLResultTypes.FiducialResult tag : vision.getFreshFiducials()) {
+            int id = tag.getFiducialId();
+            if (id < (redAlliance ? 30 : 38) || id > (redAlliance ? 37 : 45)) continue;
+            Pose3D pose = tag.getTargetPoseCameraSpace();
+            double range = poseRangeInches(pose);
+            if (!Double.isFinite(range)) range = poseRangeInches(tag.getCameraPoseTargetSpace());
+            double yaw = Double.NaN, pitch = Double.NaN, roll = Double.NaN;
+            double cameraX = Double.NaN, cameraY = Double.NaN, cameraZ = Double.NaN;
+            if (pose != null && pose.getPosition() != null) {
+                Position cameraPosition = pose.getPosition().toUnit(DistanceUnit.INCH);
+                cameraX = cameraPosition.x;
+                cameraY = cameraPosition.y;
+                cameraZ = cameraPosition.z;
+            }
+            if (pose != null && pose.getOrientation() != null) {
+                yaw = pose.getOrientation().getYaw(AngleUnit.DEGREES);
+                pitch = pose.getOrientation().getPitch(AngleUnit.DEGREES);
+                roll = pose.getOrientation().getRoll(AngleUnit.DEGREES);
+            }
+            reading.targets.add(new StationaryShotCue.Target(id,
+                    tag.getTargetXDegrees(), tag.getTargetYDegrees(), range, yaw, pitch, roll,
+                    cameraX, cameraY, cameraZ));
+        }
+        return reading;
+    }
+
+    private static double poseRangeInches(Pose3D pose) {
+        if (pose == null || pose.getPosition() == null) return Double.NaN;
+        Position position = pose.getPosition().toUnit(DistanceUnit.INCH);
+        double range = Math.hypot(Math.hypot(position.x, position.y), position.z);
+        return Double.isFinite(range) && range > 0 ? range : Double.NaN;
+    }
+
+    private void updateShotRumble(boolean ready, double seconds) {
+        // Overlapping short rumbles feel continuous and expire if the loop stops updating.
+        if (ready) {
+            if (!cueRumbling || seconds - lastRumbleSeconds >= 0.1) {
+                gamepad1.rumble(0.35, 0.35, 200);
+                lastRumbleSeconds = seconds;
+            }
+            cueRumbling = true;
+        } else if (cueRumbling) {
+            gamepad1.stopRumble();
+            cueRumbling = false;
+        }
     }
 
     private double limitShooterVelocity(double requested) {
@@ -233,12 +404,16 @@ public class Mimir_2026_Mec extends OpMode {
     @Override
     public void stop() {
         positionHold.stopHolding();
-        autoAim.stop();
+        vision.limelight_stop();
+        shotCue.reset();
+        gamepad1.stopRumble();
+        cueRumbling = false;
         shooterToggle = false;
         indexerRunning = false;
         servos.shooterthingy(false, SHOOTER_TARGET_VELOCITY);
         servos.indexerthingy(false, INDEXER_SPEED);
         servos.servos_move(false, INTAKE_SPEED);
+        shotPractice.finish();
         RobotPanels.stopped();
     }
 }

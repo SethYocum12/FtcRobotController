@@ -1,6 +1,24 @@
 # Practice instructions — do one step at a time
 
-## AprilTag auto-rotate and manual feeding
+## Current feature: stationary shot rumble
+
+For the upcoming flight-model calibration, use
+[SHOT-MATH-PRACTICE.md](SHOT-MATH-PRACTICE.md): four launches per position for
+the first pass, five positions, automatic CSV recording in practice mode.
+Extend LEFT/RIGHT validation to ten launches each when time allows.
+
+Use [SHOT-CUE.md](SHOT-CUE.md) for the current Mimir controls and setup steps.
+The cue automatically checks a manually aimed, stationary shot. **D-pad Up** confirms a
+position only after you have seen it score. Successful references are saved on
+the Control Hub. The cue gives controller feedback while you control the robot.
+
+## Earlier practice notes — historical controls
+
+The remainder records previous experiments and measurements. Its auto-aim,
+moving-shot and sample-logging button instructions are historical. Follow
+SHOT-CUE.md when running the current Mimir TeleOp.
+
+### Earlier AprilTag auto-rotate and manual feeding
 
 This follows the behavior in [Brogan's mecanum AprilTag auto-rotate video](https://www.youtube.com/watch?v=dATlviyccY0): click the **right stick** to
 toggle rotation toward the visible alliance goal tag while your drive stick
