@@ -8,10 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class servos_and_shooters {
-
-    private static final double INDEXER_REVERSE_INTERVAL_SECONDS = 3.0;
-    private static final double INDEXER_REVERSE_DURATION_SECONDS = 0.7;
-
+    public static final double DEFAULT_SHOOTER_TARGET_VELOCITY = 1325.0;
 
     private CRServo left_servo;
     private CRServo right_servo;
@@ -24,6 +21,7 @@ public class servos_and_shooters {
     private double shooterTarget;
     private final ElapsedTime flywheelClock = new ElapsedTime();
     private final FlywheelReadiness flywheelReadiness = new FlywheelReadiness();
+    private final PulsedIndexerFeed pulsedFeed = new PulsedIndexerFeed();
 
     public void init(HardwareMap hwMap){
         left_servo = hwMap.get(CRServo.class,"left_servo");
@@ -68,6 +66,7 @@ public class servos_and_shooters {
     }
 
     public void indexerthingy( boolean indexerToggle,double intake_speed) {
+     pulsedFeed.reset();
      if(indexerToggle == true){
          indexer_wheel.setPower(intake_speed);
      } else {
@@ -76,20 +75,31 @@ public class servos_and_shooters {
     }
 
     public void indexerthingyBack( boolean indexerToggle,double intake_speed) {
+        pulsedFeed.reset();
         if(indexerToggle == true){
             indexer_wheel.setPower(intake_speed);
         } else {
             indexer_wheel.setPower(0);
         }
     }
-    /** Reverse for 0.7 seconds at 3, 6, 9, ... seconds after feeding starts. */
-    public void feedIndexerWithRecovery(double feedSeconds, double forwardPower) {
-        double pulseStart = Math.floor(feedSeconds / INDEXER_REVERSE_INTERVAL_SECONDS)
-                * INDEXER_REVERSE_INTERVAL_SECONDS;
-        boolean reversing = pulseStart >= INDEXER_REVERSE_INTERVAL_SECONDS
-                && feedSeconds < pulseStart + INDEXER_REVERSE_DURATION_SECONDS;
-        indexerthingy(true, reversing ? -forwardPower : forwardPower);
+    /** Auto recovery counts actual forward-on time, not the pauses between feed bursts. */
+    public void feedIndexerWithRecovery(double forwardPower) {
+        applyPulsedFeed(true, false, true, forwardPower);
     }
+
+    /** The driver/Auto requests feeding; the shared timer spaces it and waits for wheel recovery. */
+    public void feedIndexerPulsed(boolean requested, boolean reverse, double forwardPower) {
+        applyPulsedFeed(requested, reverse, false, forwardPower);
+    }
+
+    private void applyPulsedFeed(boolean requested, boolean reverse, boolean recovery, double forwardPower) {
+        boolean ready = isShooterReady();
+        double power = pulsedFeed.update(flywheelClock.seconds(), requested, reverse, recovery,
+                shooterEnabled, shooterTarget, getShooterVelocity(), ready, forwardPower);
+        indexer_wheel.setPower(power);
+    }
+
+    public String getIndexerFeedStatus() { return pulsedFeed.getStatus(); }
 
     public void shooterthingy(boolean shooterToggle, double targetVelocity) {
         shooterEnabled = shooterToggle;

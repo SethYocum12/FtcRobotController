@@ -1,16 +1,13 @@
 # Practice instructions — do one step at a time
 
-## Current feature: stationary shot rumble
+## Current feature: manual shooting
 
-For the upcoming flight-model calibration, use
-[SHOT-MATH-PRACTICE.md](SHOT-MATH-PRACTICE.md): four launches per position for
-the first pass, five positions, automatic CSV recording in practice mode.
-Extend LEFT/RIGHT validation to ten launches each when time allows.
+Triangle toggles the flywheel, Circle independently toggles the indexer, and
+holding Square reverses the indexer. Cross toggles the intake. Current Mimir
+TeleOp does not run the shot cue, camera experiments, or CSV recording.
 
-Use [SHOT-CUE.md](SHOT-CUE.md) for the current Mimir controls and setup steps.
-The cue automatically checks a manually aimed, stationary shot. **D-pad Up** confirms a
-position only after you have seen it score. Successful references are saved on
-the Control Hub. The cue gives controller feedback while you control the robot.
+Use [SHOT-CUE.md](SHOT-CUE.md) for the current controls. The measurement files
+and experimental code are preserved for later work.
 
 ## Earlier practice notes — historical controls
 

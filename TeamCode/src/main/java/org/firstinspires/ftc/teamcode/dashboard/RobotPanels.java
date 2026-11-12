@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.mechanisms.AllianceMemory;
 import org.firstinspires.ftc.teamcode.mechanisms.LIMELIGHT_setup;
 
 import java.util.ArrayDeque;
@@ -40,6 +41,8 @@ public final class RobotPanels {
     @IgnoreConfigurable private static Path[] plannedPaths = new Path[0];
     @IgnoreConfigurable private static Pose latestPose;
     @IgnoreConfigurable private static long lastTickNanos;
+    @IgnoreConfigurable private static long lastControllerColorNanos;
+    @IgnoreConfigurable private static AllianceMemory.Alliance controllerAlliance;
 
     private RobotPanels() { }
 
@@ -54,6 +57,7 @@ public final class RobotPanels {
                 PanelsTelemetry.INSTANCE.getFtcTelemetry());
         // Runs on the OpMode thread when DS telemetry is transmitted, before Panels.update().
         driverStation.addAction(() -> {
+            updateControllerColors(opMode);
             TelemetryManager panels = PanelsTelemetry.INSTANCE.getTelemetry();
             panels.addData("OpMode", opMode.getClass().getSimpleName());
             if (latestPose != null) {
@@ -69,6 +73,8 @@ public final class RobotPanels {
         latestPose = null;
         lastTickNanos = 0;
         lastFieldNanos = 0;
+        lastControllerColorNanos = 0;
+        controllerAlliance = null;
         FieldManager field = PanelsField.INSTANCE.getField();
         field.getCanvas().getItems().clear();
         field.setOffsets(PanelsField.INSTANCE.getPresets().getPEDRO_PATHING());
@@ -77,6 +83,19 @@ public final class RobotPanels {
         visionLight.reset();
         PanelsLights.INSTANCE.getLights().initLights(shooterLight, visionLight);
         PanelsLights.INSTANCE.getLights().update();
+    }
+
+    private static void updateControllerColors(OpMode opMode) {
+        AllianceMemory.Alliance alliance = AllianceMemory.get();
+        long now = System.nanoTime();
+        // Refresh once per second as well as on alliance changes, so reconnects recover the color.
+        if (alliance == controllerAlliance && now - lastControllerColorNanos < 1_000_000_000L) return;
+        double red = alliance == AllianceMemory.Alliance.RED ? 1.0 : 0.0;
+        double blue = alliance == AllianceMemory.Alliance.BLUE ? 1.0 : 0.0;
+        opMode.gamepad1.setLedColor(red, 0.0, blue, Gamepad.LED_DURATION_CONTINUOUS);
+        opMode.gamepad2.setLedColor(red, 0.0, blue, Gamepad.LED_DURATION_CONTINUOUS);
+        controllerAlliance = alliance;
+        lastControllerColorNanos = now;
     }
 
     private static void gamepad(TelemetryManager panels, String prefix, Gamepad g) {

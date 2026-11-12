@@ -47,7 +47,8 @@ public final class AutonomousShooting {
         return sequential(
                 sequential(
                         follow(follower, approach),
-                        instant(() -> follower.hold(shootingPose)),
+                        // Passive BRAKE avoids repeated endpoint corrections while feeding.
+                        instant(follower::stop),
                         new CommandBuilder()
                                 .setStart(this::start)
                                 .setExecute(this::update)
@@ -102,15 +103,9 @@ public final class AutonomousShooting {
             feeding = true;
             status = "Feeding until 20 seconds; tag trigger latched";
         }
-        // Once feeding starts, tag loss does not end it or reset the recovery pulses.
-        // Recheck flywheel speed for EVERY ball, not only the initial tag trigger.
-        if (!mechanisms.isShooterReady()) {
-            mechanisms.indexerthingy(false, 0);
-            status = "Feed paused: " + mechanisms.getShooterFeedStatus();
-            return;
-        }
-        status = "Feeding until 20 seconds; speed checked continuously";
-        mechanisms.feedIndexerWithRecovery(getFeedSeconds(), indexerPower);
+        // Always update the feed timer, including speed dips, so a pulse cannot resume halfway through.
+        mechanisms.feedIndexerWithRecovery(indexerPower);
+        status = mechanisms.getIndexerFeedStatus();
     }
 
     private boolean groupVisible(int firstId) {

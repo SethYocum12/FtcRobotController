@@ -25,7 +25,7 @@ public class RedGarShootParkLMidWWR extends LinearOpMode {
     private Follower follower;
     private final servos_and_shooters mechanisms = new servos_and_shooters();
     private final LIMELIGHT_setup vision = new LIMELIGHT_setup();
-    private static final double SHOOTER_TARGET_VELOCITY = 1278.0;
+    private static final double SHOOTER_TARGET_VELOCITY = servos_and_shooters.DEFAULT_SHOOTER_TARGET_VELOCITY;
     private static final double INDEXER_POWER = -0.2;
     private final ElapsedTime autoTimer = new ElapsedTime();
     private final AutonomousShooting shooting = new AutonomousShooting(
@@ -78,6 +78,7 @@ public class RedGarShootParkLMidWWR extends LinearOpMode {
             if (isStopRequested()) return;
             autoTimer.reset();
             shooting.rememberAlliance();
+            follower.update(); // Reset the update interval after waiting in INIT.
             schedule(autoRoutine());
 
             while (opModeIsActive()) {

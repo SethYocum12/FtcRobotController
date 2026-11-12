@@ -100,6 +100,8 @@ public final class StationaryShotCue {
     private boolean settled;
     private boolean ready;
     private boolean operatingReady;
+    private boolean stoppedAtSpeed;
+    private String stoppedAtSpeedStatus = "Waiting for stationary shot checks";
     private String operatingStatus = "Waiting for stationary shot checks";
     private String status = "Waiting for stationary shot checks";
     private String saveStatus = "No confirmed shot saved";
@@ -156,6 +158,8 @@ public final class StationaryShotCue {
         settled = false;
         ready = false;
         operatingReady = false;
+        stoppedAtSpeed = false;
+        stoppedAtSpeedStatus = "Waiting for stationary shot checks";
         operatingStatus = "Waiting for stationary shot checks";
         status = "Waiting for stationary shot checks";
     }
@@ -178,7 +182,10 @@ public final class StationaryShotCue {
         else if (!Double.isFinite(stillSince)) stillSince = reading.seconds;
         settled = still && reading.seconds - stillSince >= STILL_SECONDS;
 
-        String reason = missingRequirement(reading);
+        String reason = motionAndShooterRequirement(reading);
+        stoppedAtSpeed = reason == null;
+        stoppedAtSpeedStatus = reason;
+        if (reason == null) reason = visionRequirement(reading);
         operatingStatus = reason;
         if (reason != null) {
             status = reason;
@@ -213,6 +220,11 @@ public final class StationaryShotCue {
     }
 
     private String missingRequirement(Reading reading) {
+        String reason = motionAndShooterRequirement(reading);
+        return reason != null ? reason : visionRequirement(reading);
+    }
+
+    private String motionAndShooterRequirement(Reading reading) {
         if (!reading.allianceKnown) return "Select alliance in INIT";
         if (!settled) return "Stop driving/turning; settle for 0.4 s";
         if (!reading.shooterOn) return "Turn shooter on with Triangle / Y";
@@ -220,6 +232,10 @@ public final class StationaryShotCue {
             return "Invalid shooter setting";
         }
         if (!reading.flywheelReady) return "Wait for flywheel speed/recovery";
+        return null;
+    }
+
+    private String visionRequirement(Reading reading) {
         for (Target target : reading.targets) {
             if (target.validFor(reading.redAlliance)) return null;
         }
@@ -320,6 +336,9 @@ public final class StationaryShotCue {
 
     public boolean isReady() { return ready; }
     public boolean isOperatingReady() { return operatingReady; }
+    /** Camera-independent checks for matching a driver-confirmed pose in this run. */
+    public boolean isStoppedAtSpeed() { return stoppedAtSpeed; }
+    public String getStoppedAtSpeedStatus() { return stoppedAtSpeedStatus; }
     public String getOperatingStatus() { return operatingStatus; }
     public String getStatus() { return status; }
     public String getSaveStatus() { return saveStatus; }

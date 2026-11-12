@@ -1,8 +1,15 @@
-# Shot math practice — four-shot first pass
+# Archived shot math practice — four-shot first pass
+
+**November 11:** Current Mimir TeleOp uses manual shooting and no longer runs
+this experiment or its CSV recording. Use [SHOT-CUE.md](SHOT-CUE.md) for current
+controls. The protocol below is preserved for future calibration work.
 
 **Keep this file open on the Mac before switching to the robot Wi-Fi.**
 Bring the Mac, Driver Station/controller, yellow balls, tape/tape measure,
 and a phone plus a helper to film and count.
+
+For a quick working rumble cue, use [SHOT-CUE.md](SHOT-CUE.md). One confirmed
+shot can teach a position for the current run, without any CSV analysis.
 
 **First pass: 4 individual ball launches at each of 5 positions = 20 shots.**
 Use one fixed shooter setting and shoot while stopped. The three centerline
@@ -25,10 +32,11 @@ aim, and feed manually. Rumble checking is automatic.
    Upload the updated project with **Run**. On the Driver Station select
    **Mimir_2026_Mec**, then **INIT**.
 2. Check your alliance: D-pad Left = red; Right = blue.
-3. During INIT, press and release **D-pad Down once**. Find the exact line
-   **Shooter speed practice: ON** on the Driver Station.
+3. Recording starts automatically at START. If you need to adjust the shooter
+   target from the controller or see the CSV filename on screen, press **D-pad
+   Down once** during INIT to turn **Shooter speed practice: ON**.
 4. Press **START**. Check that **Recording** appears on the Driver Station.
-   With the hive visible, also check **3D DATA: READY**. If it stays at WAIT,
+   With the hive visible, also check **3D DATA: READY**. If it stays missing,
    save a Driver Station photo and fix that before collecting the shot set.
 5. Use only the yellow POLLEN balls for this set. Keep the same shooter target
    for every position. The current code starts with your normal TeleOp target;
@@ -85,8 +93,8 @@ position or change power just to improve its count.
 8. Stop feeding and turn the shooter off before moving to the next mark.
    Recording continues automatically between positions.
 
-You do not need to press Up to train the math. **Up** still confirms a working
-spot for the temporary saved-spot cue, which is a separate source of feedback.
+You do not need to press Up to train the math. **Up** teaches a confirmed
+position for the current run and saves tag references when 3D data is available.
 
 ## Write only this much
 
@@ -117,8 +125,9 @@ mkdir -p shot-practice-results/real-hive
 ~/Library/Android/sdk/platform-tools/adb pull /sdcard/FIRST/settings/mimir-shot-math shot-practice-results/real-hive/
 ```
 
-Send the copied folder, original videos, and your five counts. The CSV file
-path is also shown on the Driver Station. Logs are flushed about once a second,
+Send the copied folder, original videos, and your five counts. With shooter
+speed practice enabled, the CSV path is shown on the Driver Station. Logs are
+flushed about once a second,
 after position markers, and on STOP. Each session has its own filename.
 
 If time is short, prioritize **FAR, MIDDLE, NEAR** and send what you finish.

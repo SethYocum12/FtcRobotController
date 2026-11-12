@@ -14,6 +14,8 @@ import com.pedropathing.revhub.localizers.PinpointLocalizer;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -65,6 +67,13 @@ public class Constants {
     });
 
     public static Follower create(HardwareMap hardwareMap) {
+        // Pedro commands motor power; do not inherit TeleOp's encoder velocity-control mode.
+        for (String name : new String[]{DRIVE.frontLeftName.get(), DRIVE.frontRightName.get(),
+                DRIVE.backLeftName.get(), DRIVE.backRightName.get()}) {
+            DcMotorEx motor = hardwareMap.get(DcMotorEx.class, name);
+            motor.setPower(0);
+            motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
         return new Follower(
                 new PinpointLocalizer(hardwareMap, LOCALIZER),
                 new Mecanum(hardwareMap, DRIVE),
